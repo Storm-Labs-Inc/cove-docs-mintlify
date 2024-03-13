@@ -49,6 +49,46 @@
       "pages": [
         "introduction"
       ]
+    },
+    {
+      "group": "The Cove Ecosystem",
+      "pages": [
+        "cove-token",
+        {
+          "group": "Boosties",
+          "pages": [
+            "boosties",
+            "coveyfi",
+            "dyfi-redeemer"
+          ]
+        },
+        "cove-protocol",
+        "storm-labs"
+      ]
+    },
+    {
+      "group": "Security",
+      "pages": [
+        "audits",
+        "bug-bounty",
+        "risks"
+      ]
+    },
+    {
+      "group": "How-to Guides",
+      "pages": [
+        {
+          "group": "Boosties",
+          "pages": ["how-to/boosties"]
+        }
+      ]
+    },
+    {
+      "group": "Legal",
+      "pages": [
+        "terms-of-service",
+        "privacy-policy"
+      ]
     }
   ],
   "footerSocials": {
