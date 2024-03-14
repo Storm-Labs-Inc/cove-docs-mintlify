@@ -15,181 +15,184 @@ safeguard the protocol's integrity and security.
 
 ## Roles
 
-- ``DEFAULT_ADMIN_ROLE``
-    - Granted to Community Multisig (3 out of 7)
-    - For rescuing funds and pausing
-- ``_TIMELOCK_ROLE``
-    - To be granted to a Timelock Controller owned by the Community Multisig after initial setups
-    - For managing user reward impacting functionalities
-    - For setting permissioned address such as treasury address
-    - For setting fee parameters
-- ``_MANAGER_ROLE``
-    - Granted to ops multisig (2 out of 4)
-    - For managing non-user fund impacting functions
-    - Adding new entries to MasterRegistry and YearnGaugeFactory
-- ``_PAUSER_ROLE``
-    - Granted to EOA / OZ Defender
-    - For limiting attack vectors in emergencies
-    - Stops new deposits
-- ``_MINTER_ROLE``
-    - Granted to Community Multisig
-    - Used in CoveToken contract
-    - Able to call `mint()`
+- `DEFAULT_ADMIN_ROLE`
+  - Granted to Community Multisig (3 out of 7)
+  - For rescuing funds and pausing
+- `_TIMELOCK_ROLE`
+  - To be granted to a Timelock Controller owned by the Community Multisig after initial setups
+  - For managing user reward impacting functionalities
+  - For setting permissioned address such as treasury address
+  - For setting fee parameters
+- `_MANAGER_ROLE`
+  - Granted to ops multisig (2 out of 4)
+  - For managing non-user fund impacting functions
+  - Adding new entries to MasterRegistry and YearnGaugeFactory
+- `_PAUSER_ROLE`
+  - Granted to EOA / OZ Defender
+  - For limiting attack vectors in emergencies
+  - Stops new deposits
+- `_MINTER_ROLE`
+  - Granted to Community Multisig
+  - Used in CoveToken contract
+  - Able to call `mint()`
 
 ## Contracts
 
 ### CoveToken
 
-- _TIMELOCK_ROLE
-    - addAllowedSender(address target)
-    - removeAllowedSender(address target)
-    - addAllowedReceiver(address target)
-    - removeAllowedReceiver(address target)
-- _MINTER_ROLE
-    - mint()
-        - *Mints tokens to a specified address*
+- \_TIMELOCK_ROLE
+  - addAllowedSender(address target)
+  - removeAllowedSender(address target)
+  - addAllowedReceiver(address target)
+  - removeAllowedReceiver(address target)
+- \_MINTER_ROLE
+  - mint()
+    - _Mints tokens to a specified address_
 
 ### CoveYearnGaugeFactory
 
-- *DEFAULT_ADMIN_ROLE*
-    - setRewardForwarderImplementation(address impl)
-    - setYsdRewardsGaugeImplementation(address impl)
-    - setTreasuryMultisig(address multisig)
-    - setERC20RewardsGaugeImplementation(address impl)
-    - setGaugeAdmin(address admin)
-- *_MANAGER_ROLE*
-    - deployCoveGauges()
+- _DEFAULT_ADMIN_ROLE_
+  - setRewardForwarderImplementation(address impl)
+  - setYsdRewardsGaugeImplementation(address impl)
+  - setTreasuryMultisig(address multisig)
+  - setERC20RewardsGaugeImplementation(address impl)
+  - setGaugeAdmin(address admin)
+- _\_MANAGER_ROLE_
+  - deployCoveGauges()
 
 ### BaseRewardsGauge
 
-- *DEFAULT_ADMIN_ROLE*
-    - pause()
-    - unpause()
-- *_MANAGER_ROLE*
-    - addReward()
-    - setRewardDistributor() *also allowed from current distributor
-- _PAUSER_ROLE
-    - pause()
+- _DEFAULT_ADMIN_ROLE_
+  - pause()
+  - unpause()
+- _\_MANAGER_ROLE_
+  - addReward()
+  - setRewardDistributor() \*also allowed from current distributor
+- \_PAUSER_ROLE
+  - pause()
 
 ### MiniChefV3
 
-- *DEFAULT_ADMIN_ROLE*
-    - rescue()
-    - pause()
-    - unpause()
-    - setRewardPerSecond()
-- *_TIMELOCK_ROLE*
-    - add()
-        - *Add a new LP to the pool with an allocpoint*
-    - set()
-        - *Update the given pool's REWARD_TOKEN allocation point and `IRewarder` contract*
-    - setRewardPerSecond()
-- _PAUSER_ROLE
-    - pause()
+- _DEFAULT_ADMIN_ROLE_
+  - rescue()
+  - pause()
+  - unpause()
+  - setRewardPerSecond()
+- _\_TIMELOCK_ROLE_
+  - add()
+    - _Add a new LP to the pool with an allocpoint_
+  - set()
+    - _Update the given pool's REWARD_TOKEN allocation point and `IRewarder` contract_
+  - setRewardPerSecond()
+- \_PAUSER_ROLE
+  - pause()
 
 ### RewardForwarder
 
-- *DEFAULT_ADMIN_ROLE*
-    - setTreasury()
-    - setTreasuryBps()
+- _DEFAULT_ADMIN_ROLE_
+  - setTreasury()
+  - setTreasuryBps()
 
 ### YearnGaugeStrategy
 
 - Roles come from BaseStrategy / TokenizedStrategy
-    - onlyManagement()
 
-        **note: management is only given to one address
+  - onlyManagement()
 
-        — TokenizedStrategy
+    \*\*note: management is only given to one address
 
-        - setPendingManagement()
-        - setKeeper()
-        - setEmergencyAdmin();
-        - setPerformanceFee();
-        - setPerformanceFeeRecipient();
-        - setProfitMaxUnlockTime();
+    — TokenizedStrategy
 
-        — YearnGaugeStrategy
+    - setPendingManagement()
+    - setKeeper()
+    - setEmergencyAdmin();
+    - setPerformanceFee();
+    - setPerformanceFeeRecipient();
+    - setProfitMaxUnlockTime();
 
-        - setHarvestSwapParams()
-        - setMaxTotalAssets();
-        - setDYfiRedeemer();
-    - onlyKeepers()
+    — YearnGaugeStrategy
 
-        ** note: this modifier is truly isKeeperOrManagement(), so access can be given to an autonomous keeper and manager at the same time
+    - setHarvestSwapParams()
+    - setMaxTotalAssets();
+    - setDYfiRedeemer();
 
-        - report(): *Function for keepers to call to harvest and record all profits accrued*
-            - *should be called through protected relays if swaps are going to happen* (which they will)
-    - onlyEmergencyAuthorized()
+  - onlyKeepers()
 
-        **note: this modifier is truly emergencyAdmin OR management
+    \*\* note: this modifier is truly isKeeperOrManagement(), so access can be given to an autonomous keeper and manager at the same time
 
-        - emergencyAdmin can only be given to one address
-        - shutdownStrategy()
-            - *Used to shutdown the strategy preventing any further deposits*
-                - _strategyStorage().shutdown = true;
-            - *Can only be called by the current `management` or `emergencyAdmin`*
-        - emergencyWithdraw()
-            - *To manually withdraw funds from the yield source after a strategy has been shut down*
+    - report(): _Function for keepers to call to harvest and record all profits accrued_
+      - _should be called through protected relays if swaps are going to happen_ (which they will)
+
+  - onlyEmergencyAuthorized()
+
+    \*\*note: this modifier is truly emergencyAdmin OR management
+
+    - emergencyAdmin can only be given to one address
+    - shutdownStrategy()
+      - _Used to shutdown the strategy preventing any further deposits_
+        - \_strategyStorage().shutdown = true;
+      - _Can only be called by the current `management` or `emergencyAdmin`_
+    - emergencyWithdraw()
+      - _To manually withdraw funds from the yield source after a strategy has been shut down_
 
 ### CoveYFI
 
-- *DEFAULT_ADMIN_ROLE*
-    - rescue()
+- _DEFAULT_ADMIN_ROLE_
+  - rescue()
 
 ### DYfiRedeemer
 
 - DEFAULT_ADMIN_ROLE
-    - setSlippage()
-        - *Sets the slippage that should be applied to DYFI -> YFI redeems*
-    - kill()
-        - _pause()
+  - setSlippage()
+    - _Sets the slippage that should be applied to DYFI -> YFI redeems_
+  - kill()
+    - \_pause()
 
 ### GaugeRewardReceiver
 
-- *DEFAULT_ADMIN_ROLE*
-    - rescue()
+- _DEFAULT_ADMIN_ROLE_
+  - rescue()
 
 ### MasterRegistry
 
-- *DEFAULT_ADMIN_ROLE*
-    - grantRole(*_MANAGER_ROLE)*
-- *_MANAGER_ROLE*
-    - also given to *DEFAULT_ADMIN_ROLE admin*
-    - addRegistry()
-    - updateRegistry()
+- _DEFAULT_ADMIN_ROLE_
+  - grantRole(_\_MANAGER_ROLE)_
+- _\_MANAGER_ROLE_
+  - also given to _DEFAULT_ADMIN_ROLE admin_
+  - addRegistry()
+  - updateRegistry()
 
 ### StakingDelegateRewards
 
-- *DEFAULT_ADMIN_ROLE*
-    - recoverERC20()
-        - *Allows recovery of ERC20 tokens other than the staking and rewards tokens*
-- *_TIMELOCK_ROLE*
-    - setRewardsDuration()
-        - *Sets the duration of the rewards period for a given staking token*
+- _DEFAULT_ADMIN_ROLE_
+  - recoverERC20()
+    - _Allows recovery of ERC20 tokens other than the staking and rewards tokens_
+- _\_TIMELOCK_ROLE_
+  - setRewardsDuration()
+    - _Sets the duration of the rewards period for a given staking token_
 
 ### SwapAndLock
 
-- *DEFAULT_ADMIN_ROLE*
-    - setDYfiRedeemer()
-        - *Sets the address of the DYfiRedeemer contract and approves it to spend dYFI*
+- _DEFAULT_ADMIN_ROLE_
+  - setDYfiRedeemer()
+    - _Sets the address of the DYfiRedeemer contract and approves it to spend dYFI_
 
 ### YearnStakingDelegate
 
-- *DEFAULT_ADMIN_ROLE*
-    - rescueYfi()
-    - rescueDYfi()
-    - pause()
-    - unpause()
-    - addGaugeRewards()
-        - Allowing new gauge deposits, does not need to be timelock’d
-- _TIMELOCK_ROLE
-    - setSwapAndLock()
-    - setGaugeRewardSplit()
-    - setSnapshotDelegate()
-    - updateGaugeRewards()
-    - setPerpetualLock()
-    - earlyUnlock()
-    - execute()
-- _PAUSER_ROLE
-    - pause()
+- _DEFAULT_ADMIN_ROLE_
+  - rescueYfi()
+  - rescueDYfi()
+  - pause()
+  - unpause()
+  - addGaugeRewards()
+    - Allowing new gauge deposits, does not need to be timelock’d
+- \_TIMELOCK_ROLE
+  - setSwapAndLock()
+  - setGaugeRewardSplit()
+  - setSnapshotDelegate()
+  - updateGaugeRewards()
+  - setPerpetualLock()
+  - earlyUnlock()
+  - execute()
+- \_PAUSER_ROLE
+  - pause()

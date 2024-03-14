@@ -1,6 +1,125 @@
 ---
 title: Boosties
-description: "Technical documentation for Boosties"
+description: "Technical documentation and architecture for Boosties"
 ---
 
-TODO
+# Summary
+
+This RFC proposes the implementation of a smart contract system on the Ethereum network, onboarding users of all types to receive the benefit of YearnV3 without requiring both **veYFI** and gauge tokens to receive boosted **dYFI** yield.
+
+# Background
+
+Yearn is launching V3 of their vaults, which will now comply with the ERC-4626 standard, alongside their **veYFI** voting token model for emitting a new reward token, **dYFI**, for staking their Vault assets also known as Yearn Vault tokens (examples include YFI/ETH Curve LP token vault, WETH/yETH Curve LP token Vault, etc).
+
+### Related reading
+
+- [[Proposal] Activate veYFI rewards with oYFI Gauges - Protocol and Governance - yearn.finance](https://gov.yearn.fi/t/yip-73-activate-veyfi-rewards-with-oyfi-gauges/13414/1)
+- [veYFI](https://github.com/yearn/veYFI)
+- [dYFI](https://docs.yearn.fi/getting-started/products/veyfi#dyfi)
+
+# Problem
+
+For users to receive **dYFI**, they will need to provide both **veYFI** and Yearn V3 vault tokens proportionally for maximum boost. This design is meant to dissuade large depositors from easily gaining dYFI and thus skewing the system.
+
+This design of the ve-token system creates 3 groups of users that face dilemmas on how to split their investments for maximum benefit.
+
+- Users with veYFI holdings but no vault tokens to provide
+  - Without vault tokens to stake, users only receive dYFI from the dYFI penalty, missing out on the full benefit of the veYFI boost.
+- Users with Gauge tokens but no veYFI
+  - Without veYFI, these users only receive 1x (base rate) of dYFI emission when staking their vault tokens. Even if the users were to trade all of their received dYFI to veYFI at every epoch, there is no guarantee that their boost will be much higher due to other users who receive higher dYFI emission, up to 10x boost, which gives them significant advantage in maintaining their share of veYFI.
+- Users who receive dYFI emission but who does not wish to manually redeem or trade claimed dYFI.
+  - Users who wants to automate dYFI → YFI redeem process
+    - ex. veYFI holders, StakeDAO users
+
+This RFC proposes a smart contract system for allowing both set of users to reap benefit of the **dYFI** emission without needing to provide both **veYFI** or vault tokens. Additionally, we offer a contract that can be utilized by the public for automatic and effective dYFI redemptions for any recipients of dYFI emission.
+
+## Goals
+
+Through Cove’s tokenized strategies that wrap around Yearn’s gauges for dYFI emissions, users are able to stake their Gauge tokens through Cove’s contracts. Users can use the veYFI boost that Cove owns, reaping the benefit of boosted dYFI emission, as well as compounding dYFI tokens for higher overall APY for each underlying Yearn V3 vault. Cove can perpetually increase their veYFI ownership over time and let any users stake their yearn v3 Gauge tokens through Cove. Additionally YFI holders who wish to gain without providing additional assets can also partake in Cove by converting their YFI for coveYFI tokens then staking coveYFI for any protocol rewards.
+
+## Non-goals
+
+Portfolio management of multiple vaults
+
+# Proposed Implementation
+
+The smart contract system will consist of the following components:
+
+- **coveYFI**: Smart contract that receives YFI from users. Then YFI is sent to **YearnStakingDelegate**, which perpetually locks YFI for veYFI, increasing the protocol’s ownership for veYFI.
+
+<Frame caption="Diagram of coveYFI and veYFI Snapshot Voting interactions">
+  <img
+    className="block dark:hidden"
+    src="/images/coveyfi-snapshot-light.svg"
+    alt="Diagram Light"
+  />
+  <img
+    className="hidden dark:block"
+    src="/images/coveyfi-snapshot-dark.svg"
+    alt="Diagram Dark"
+  />
+</Frame>
+
+- **YearnStakingDelegate (a.k.a. YSD)**: Responsible for locking YFI for veYFI. Yearn gauge tokens be held in this contract in order to receive the benefit of ve boosting. Additionally this contract should be able to delegate their veYFI in Snapshot such that its able to vote for initial voting rounds. Initially, an internal multisig will control the votes until a community counsel is established. It should also take future DAO on-chain voting mechanisms into consideration. The dYFI rewards given out by each gauge should be split into 4 potential destinations with configurable params by the protocol admin/DAO.
+  - `IYearnStakingDelegate.RewardSplit`
+    - treasury
+      - Cannot be higher than 20%. Sends to the treasury multisig.
+    - coveYfi
+      - Sends to **RewardForwarder** associated with **ERC20RewardsGauge** for staking CoveYFI token.
+    - user
+      - Sends to **StakingDelegateRewards**, rewarding the depositors of the Yearn gauge token.
+    - lock
+      - Sends to SwapAndLock for redeeming dYFI to YFI then locking it for veYFI.
+- **GaugeRewardReceiver**: For each Gauge, YSD deploys a clone of **GaugeRewardReceiver** and sets it as the receiver of rewards for the emissions from the gauge. `YSD.harvest(gauge)` will call `GaugeRewardReceiver.harvest( address swapAndLock, address treasury, IYearnStakingDelegate.RewardSplit calldata rewardSplit )` which claims dYFI emission from the associated Gauge and distributes it based on the given RewardSplit.
+- **ERC20RewardsGauge**: Contract responsible for rewarding ERC20 depositors. Used for rewarding **CoveYFI** token holders.
+- **YSDRewardsGauge**: Contract resposible for rewarding Yearn Gauge tokens depositors. Earns dYFI and COVE as reward tokens.
+- **YearnGaugeStrategy:** 4626 contract that takes in a Yearn Gauge token as the asset. It will depositing them in YSD, earning dYFI emission. Claims the dYFI emission from **StakingDelegateRewards**. Relies on **DYfiRedeemer** to redeem the claimed dYFI for YFI. On harvest it swaps YFI to base asset, then to the vault, then to the gauge, and deposits it in YSD, increasing its pricePerShare.
+- **SwapAndLock**: Receives its portion of rewards from the **GaugeRewardReceiver**, holds the dYFI until it is redeemed for YFI by **DYfiRedeemer** contract. Locks any YFI it has for YSD.
+- **StakingDelegateRewards**: Modified version of StakingRewards contract that allows emitting single reward token to multiple staking tokens. In our use case, it will stream dYFI rewards received from multiple **GaugeRewardReceivers**, each corresponding to a Gauge, to the users who deposited their Gauge tokens to YSD. Distributes dYFI pro-rata to depositors. These are claimed periodically which is streamed over reward duration which is configurable by the DAO.
+- **DYfiRedeemer**: Redeems dYFI from users who approve the contract. Using Yearn’s Redemption contract and flashloaning ETH, we can effectively acquire YFI without needing to exchange the entire balance of dYFI. Anyone can call `DYfiRedeemer.massRedeem(address[], uint256[] dYfiAmounts)` which borrows the required ETH from a flash loan provider, takes dYFI tokens from the approvers, redeem them for YFI, sells some of the YFI to ETH via Curve using chainlink price adjusted with slippage for ETH flashloan payback, then returns the remaining YFI to the users who it took dYFI from. The slippage parameter is controlled by the DAO but limited by immutable max parameter such that sufficient YFI can be sold for the flash loan payment. Any extra ETH that is left due to slippage expectation is sent to the caller of `massRedeem()` to incentivize automation.
+
+<Frame caption="Sequence diagram of the massRedeem call">
+  <img src="/images/massredeem-sequence-diagram.png" alt="Sequence Diagram" />
+</Frame>
+
+- Anyone can trigger `YearnStakingDelegate.harvest(address gauge)`
+  - Upon harvest, the associated GaugeRewardReceiver will claim any pending dYFI from the corresponding gauge, and the rewards are split into 3 ways
+    - Treasury split (default 0%, max 20%):
+      - dYFI transfer to treasury
+    - CoveYFI split (default 0%):
+      - dYFI transfer to RewardForwarder associated with ERC20RewardsGauge for staking CoveYFI.
+    - User split (default 100%):
+      - dYFI transfer to **StakingDelegateRewards** and calls `notifyRewardAmount()`, allowing Yearn Gauge token depositors to earn dYFI rewards.
+      - Determine appropriate amount to emit based on depositors’ duration and the amounts.
+      - Cove’s **YearnGaugeStrategy** contracts, which are depositors of YSD, can claim dYFI from **StakingDelegateRewards** to exchange it to their asset and re-deploy them, increasing the value per share.
+    - Lock split (default 0%):
+      - dYFI is transferred to **SwapAndLock** which have approved **DYfiRedeemer** for dYFI usage.
+      - **DYfiRedeemer** takes dYFI from **SwapAndLock** and redeems for YFI, returns it to **SwapAndLock**
+      - YFI sent to the YSD and locked for veYFI
+  - Ideally, this split is determined to target the ideal split to achieve high boost via increasing veYFI holding, but also reward the users with higher than base rate they would get from using Yearn themselves
+
+<Frame caption="Diagram of YearnStakingDelegate and Harvest interactions">
+  <img
+    className="block dark:hidden"
+    src="/images/ysd-harvesting-light.svg"
+    alt="Diagram Light"
+  />
+  <img
+    className="hidden dark:block"
+    src="/images/ysd-harvesting-dark.svg"
+    alt="Diagram Dark"
+  />
+</Frame>
+
+## Gauge Reward Claiming Process
+
+<Frame caption="Diagram of the gauge reward claiming process">
+  <img src="/images/gauge-reward-claiming.png" alt="Diagram" />
+</Frame>
+
+## Dependencies
+
+- Requires Yearn V3 vaults, veYFI, and dYFI to launch first.
+- Relies on Curve for swapping YFI → base asset of the gauge.
+- Relies on a flash loan provider (Balancer).
+- Relies on Yearn’s Redemption contract to be filled.

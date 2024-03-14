@@ -113,7 +113,8 @@
           "pages": [
             "technical/boosties",
             "technical/access-controls",
-            "technical/yearn-router"
+            "technical/yearn-router",
+            "technical/forge-docs"
           ]
         }
       ]
