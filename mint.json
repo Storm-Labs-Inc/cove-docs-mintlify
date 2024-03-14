@@ -82,6 +82,7 @@
       "pages": [
         "security/audits",
         "security/bug-bounty",
+        "security/contract-addresses",
         "security/risks"
       ]
     },
@@ -107,7 +108,6 @@
     {
       "group": "Technical Documentation",
       "pages": [
-        "technical/contract-addresses",
         {
           "group": "Boosties",
           "pages": [
