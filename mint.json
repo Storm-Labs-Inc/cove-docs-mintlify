@@ -58,7 +58,13 @@
     {
       "group": "Cove Ecosystem",
       "pages": [
-        "ecosystem/cove-token",
+        {
+          "group": "$COVE",
+          "pages": [
+            "ecosystem/token/info",
+            "ecosystem/token/governance"
+          ]
+        },
         {
           "group": "Boosties",
           "pages": [
@@ -84,7 +90,10 @@
       "pages": [
         {
           "group": "Boosties",
-          "pages": ["how-to/boosties"]
+          "pages": [
+            "how-to/boosties",
+            "how-to/coveyfi"
+          ]
         }
       ]
     },
@@ -99,7 +108,13 @@
       "group": "Technical Documentation",
       "pages": [
         "technical/contract-addresses",
-        "technical/boosties"
+        {
+          "group": "Boosties",
+          "pages": [
+            "technical/boosties",
+            "technical/yearn-router"
+          ]
+        }
       ]
     }
   ],

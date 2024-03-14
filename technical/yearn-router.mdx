@@ -1,0 +1,170 @@
+---
+title: YearnRouter4626Ext
+---
+
+# Intro
+
+The purpose of the **YearnRouter4626Ext** contract is to improve the UX of the protocol by removing approval or deposit transactions at different steps. For example, instead of users acquiring coveYFI, approving it, then staking it, they can simply use the **YearnRouter4626Ext** contract to batch the steps into 1 transaction. For this purpose, the router is permissionless and stateless. Furthermore Permit2 can be used for reducing needed approvals if the token does not support Permit.
+
+# Permit availability
+
+1. ❌ YFI
+2. ✅ coveYFI
+3. ✅ Curve v2 factory LP token
+4. ✅ Yearn Vault v2
+5. ✅ Yearn Vault v3
+6. ❌ Yearn Gauge
+7. ✅ Cove Yearn Strategy (TokenizedStrategy)
+8. ✅ Cove Reward Gauge (Auto compounding gauge, non-autocompounding gauge, coveYFI rewards gauge)
+9. ❌ StakeDAO Gauge
+
+# How to build multicall for users
+
+The general structure of the multicall will look like this
+
+(Optional) User TX #0: `inputToken.approve(PERMIT2, MAX_UINT_256)`
+
+User TX #1:
+
+`router.multicall()` with below array as the calldata:
+
+[
+
+(Optional) `router.selfPermit()`
+
+`router.pullToken()` or `router.pullTokenWithPermit2()`,
+
+(Optional) `router.approve()`,
+
+`router.deposit()` / `router.redeemFromRouter`,
+
+(Optional) `router.approve()`,
+
+`router.deposit()` / `router.redeemFromRouter`,
+
+]
+
+Router will pull the input token from the user, and deposit it for itself for intermediary vaults, and deposit for user for the last vault, transferring desired vault shares to the user.
+
+1. Determine if the input token supports Permit. If not use permit2
+   1. Case if the input token supports Permit:
+      1. Request signature from the user wallet for Permit transfer. **Use the EXACT amount the user wishes to use, not the max amount**, as this could allow malicious actors to use the approval in the future.
+      2. Use this signature as a param for `router.selfPermit()` call, build the calldata, and add to multicall() param array
+      3. Build the `router.pullToken()` calldata, and add to the multicall() param array
+   2. Case if the input token does NOT support Permit, use Permit2:
+      1. Check if the user has approved Permit2
+         1. `asset.allowance(address(user), address(PERMIT2)`
+      2. If not, request user to send an approval TX with the max amount so Permit2 can be used
+         1. `asset.approve(address(PERMIT2),  type(uint256).max)`
+      3. Once the user has approved Permit2, build the `router.pullTokenWithPermit2()` calldata and add to the multicall() param array
+2. Calculate expected shares minted / assets withdrawn via `preview*` functions
+   1. Build an array of input to output tokens as an array of addresses
+   2. Utilize `previewDeposit` or `previewRedeem` for calculating expected shares minted at each deposit step or expected assets received at each redeems.
+   3. Note that if the path contains a Yearn Vault v2, the estimation may not be accurate
+3. Check if the router has enough approvals for each deposit step
+   1. For each step, check if allowance is enough
+   2. `asset.allowance(address(router), address(vault))`
+   3. If not, include `router.approve(asset, vault, MAX_UINT256)` calls before each deposits so that the Router is able to deposit successfully
+   4. (Note that this is a one-time approval for the first user to deposit into the vault via the router. We should not include unnecessary approvals for the users after)
+   5. For redeeming/withdrawing, where the input token is the vault, no approval is necessary
+4. Simulate the `router.multicall()` with the params and check that expected return data at each step is correct.
+
+# Multicall call data examples
+
+## Deposits
+
+### LPToken → yVaultV2 → yvGauge → CoveYearnStrat → RewardsGauge
+
+Alice wishes to deposit 1e18 of her curve YFI/ETH LP token to cove’s auto-compounding gauge.
+
+Alice is the first user to use this path.
+
+Assume the `previewDeposit` call showed:
+
+1e18 LP token → 0.9e18 Yearn Vault V2 → 0.9e18 Yearn Gauge → 0.8e18 CoveYearnStrategy → 0.8e18 AutoCompoundingRewardsGauge
+
+Frontend requests Permit signature for transferring the 1e18 LP token from Alice to the router and generates v, r, s.
+
+```solidity
+router.multicall([
+	router.encodeFunctionData.selfPermit(LP_TOKEN, 1e18, deadline, v, r, s),
+	router.encodeFunctionData.pullToken(LP_TOKEN, 1e18, address(router)),
+	router.encodeFunctionData.approve(LP_TOKEN, YEARN_V2_VAULT, MAX_UINT256),
+	router.encodeFunctionData.depositToVaultV2(YEARN_V2_VAULT, 1e18, address(router), 0.9e18),
+	router.encodeFunctionData.approve(YEARN_V2_VAULT, YEARN_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(YEARN_GAUGE, 0.9e18, address(router), 0.9e18),
+	router.encodeFunctionData.approve(YEARN_GAUGE, COVE_STRAT, MAX_UINT256),
+	router.encodeFunctionData.deposit(COVE_STRAT, 0.9e18, address(router), 0.8e18),
+	router.encodeFunctionData.approve(COVE_STRAT, REWARDS_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(REWARDS_GAUGE, 0.8e18, address(alice), 0.8e18),
+]);
+```
+
+Ben hears about this opportunity and wants to replicate what Alice did but with 2e18 LP token.
+
+Assume the `previewDeposit` call showed:
+
+1e18 LP token → 0.9e18 Yearn Vault V2 → 0.9e18 Yearn Gauge → 0.8e18 CoveYearnStrategy → 0.8e18 AutoCompoundingRewardsGauge
+
+Frontend requests Permit signature for transferring the 2e18 LP token from Ben to the router and generates v, r, s.
+
+```solidity
+router.multicall([
+	router.encodeFunctionData.selfPermit(LP_TOKEN, 2e18, deadline, v, r, s),
+	router.encodeFunctionData.pullToken(LP_TOKEN, 2e18, address(router)),
+	router.encodeFunctionData.depositToVaultV2(YEARN_V2_VAULT, 2e18, address(router), 1.8e18),
+	router.encodeFunctionData.deposit(YEARN_GAUGE, 1.8e18, address(router), 1.8e18),
+	router.encodeFunctionData.deposit(COVE_STRAT, 1.8e18, address(router), 1.6e18),
+=	router.encodeFunctionData.deposit(REWARDS_GAUGE, 1.6e18, address(ben), 1.6e18),
+]);
+```
+
+### yvGauge → CoveYearnStrat → RewardsGauge
+
+Alice already holds 0.9e18 yearn gauge tokens and wants to earn COVE token on top.
+
+```solidity
+router.multicall([
+	router.encodeFunctionData.pullTokenWithPermit2(YEARN_GAUGE, 0.9e18, permit, transferDetails, signature),
+	router.encodeFunctionData.approve(YEARN_GAUGE, COVE_STRAT, MAX_UINT256),
+	router.encodeFunctionData.deposit(COVE_STRAT, 0.9e18, address(router), 0.8e18),
+	router.encodeFunctionData.approve(COVE_STRAT, REWARDS_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(REWARDS_GAUGE, 0.8e18, address(alice), 0.8e18),
+]);
+```
+
+### stakeDaoGauge → yVaultV2 → yvGauge → CoveYearnStrat → RewardsGauge
+
+Alice already holds 0.9e18 stakeDaoGauge tokens and wants to move to Cove’s auto compounding gauge.
+
+**This is a special case where we must combine redeem and deposit calls together**
+
+```solidity
+router.multicall([
+	router.encodeFunctionData.pullTokenWithPermit2(STAKE_DAO_GAUGE, 0.9e18, permit, transferDetails, signature),
+	router.encodeFunctionData.redeemStakeDaoGauge(STAKE_DAO_GAUGE, 0.9e18),
+	router.encodeFunctionData.approve(YEARN_V2_VAULT, YEARN_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(YEARN_GAUGE, 0.9e18, address(router), 0.9e18),
+	router.encodeFunctionData.approve(YEARN_GAUGE, COVE_STRAT, MAX_UINT256),
+	router.encodeFunctionData.deposit(COVE_STRAT, 0.9e18, address(router), 0.8e18),
+	router.encodeFunctionData.approve(COVE_STRAT, REWARDS_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(REWARDS_GAUGE, 0.8e18, address(alice), 0.8e18),
+]);
+```
+
+### stakeDaoGauge → yVaultV2 → yvGauge → NonCompoundingRewardsGauge
+
+Alice already holds 0.9e18 stakeDaoGauge tokens and wants to move to cove’s non-auto compounding gauge.
+
+**This is a special case where we must combine redeem and deposit calls together**
+
+```solidity
+router.multicall([
+	router.encodeFunctionData.pullTokenWithPermit2(STAKE_DAO_GAUGE, 0.9e18, permit, transferDetails, signature),
+	router.encodeFunctionData.redeemStakeDaoGauge(STAKE_DAO_GAUGE, 0.9e18),
+	router.encodeFunctionData.approve(YEARN_V2_VAULT, YEARN_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(YEARN_GAUGE, 0.9e18, address(router), 0.9e18),
+	router.encodeFunctionData.approve(YEARN_GAUGE, NON_COMPOUNDING_REWARDS_GAUGE, MAX_UINT256),
+	router.encodeFunctionData.deposit(NON_COMPOUNDING_REWARDS_GAUGE, 0.9e18, address(alice), 0.9e18),
+]);
+```
