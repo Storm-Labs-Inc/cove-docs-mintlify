@@ -38,7 +38,7 @@
       "url": "https://discord.gg/fvxc4p6gB2"
     },
     {
-      "name": "Blog",
+      "name": "Mirror",
       "icon": "newspaper",
       "url": "https://mirror.xyz/covefi.eth"
     }
@@ -53,25 +53,25 @@
     {
       "group": "The Cove Ecosystem",
       "pages": [
-        "cove-token",
+        "ecosystem/cove-token",
         {
           "group": "Boosties",
           "pages": [
-            "boosties",
-            "coveyfi",
-            "dyfi-redeemer"
+            "ecosystem/boosties/boosties",
+            "ecosystem/boosties/coveyfi",
+            "ecosystem/boosties/dyfi-redeemer"
           ]
         },
-        "cove-protocol",
-        "storm-labs"
+        "ecosystem/cove-protocol",
+        "ecosystem/storm-labs"
       ]
     },
     {
       "group": "Security",
       "pages": [
-        "audits",
-        "bug-bounty",
-        "risks"
+        "security/audits",
+        "security/bug-bounty",
+        "security/risks"
       ]
     },
     {
@@ -86,8 +86,8 @@
     {
       "group": "Legal",
       "pages": [
-        "terms-of-service",
-        "privacy-policy"
+        "legal/terms-of-service",
+        "legal/privacy-policy"
       ]
     }
   ],
