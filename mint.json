@@ -25,7 +25,12 @@
     "name": "Visit Website",
     "url": "https://www.cove.finance/"
   },
-  "tabs": [],
+   "tabs": [
+    {
+      "name": "Technical Documentation",
+      "url": "technical"
+    }
+  ],
   "anchors": [
     {
       "name": "Twitter",
@@ -51,7 +56,7 @@
       ]
     },
     {
-      "group": "The Cove Ecosystem",
+      "group": "Cove Ecosystem",
       "pages": [
         "ecosystem/cove-token",
         {
@@ -88,6 +93,13 @@
       "pages": [
         "legal/terms-of-service",
         "legal/privacy-policy"
+      ]
+    },
+    {
+      "group": "Technical Documentation",
+      "pages": [
+        "technical/contract-addresses",
+        "technical/boosties"
       ]
     }
   ],
