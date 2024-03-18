@@ -19,6 +19,7 @@
       "dark": "#020D08"
     }
   },
+  "backgroundImage": "/images/header-aura.svg",
   "topbarLinks": [
     {
       "name": "Support",
