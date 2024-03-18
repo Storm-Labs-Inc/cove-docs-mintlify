@@ -105,10 +105,11 @@
       ]
     },
     {
-      "group": "Legal",
+      "group": "Resources",
       "pages": [
-        "legal/terms-of-service",
-        "legal/privacy-policy"
+        "resources/terms-of-service",
+        "resources/privacy-policy",
+        "resources/media-kit"
       ]
     },
     {
