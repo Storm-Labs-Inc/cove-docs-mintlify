@@ -3,24 +3,17 @@ title: Token Information
 description: "$COVE — A non-transferable protocol governance token"
 ---
 
-# Token Specification
+## Token Overview
 
-- Name: Cove DAO
-- Ticker: COVE
-- Initial supply: 1B
-- Modifiers
-  - Ownable/governance
-  - Permit
-  - Pausable
-    - Non-transferable for 18 months (anyone can unlock after)
-    - DAO can vote to enable transfers after 6 months
-  - Burnable
-- Additional functionality
-  - Rescue function for ETH/ERC20s
-  - Transfer allowlist
-  - [ARB style inflation](https://docs.arbitrum.foundation/airdrop-eligibility-distribution) (”Max 6% per year” starting after 3 years)
+$COVE is the protocol's governance token. It is currently non-transferable for a
+minimum of 6 months, after which the DAO can vote to enable transfers.  After 18
+months, anyone may enable transfers.
 
-## Token Distribution
+<Frame caption="The initial $COVE token distribution">
+  <img src="/images/tokenomics.svg" alt="Cove Token Distribution" />
+</Frame>
+
+### Distribution
 
 The initial supply of 1 billion $COVE has been minted at genesis and will become
 available over the course of 3 years. The initial distribution is as follows:
@@ -38,4 +31,19 @@ available over the course of 3 years. The initial distribution is as follows:
   - 2 year linear vesting for investors
   - 3 year linear vesting for team and advisors
 
+### Specification
 
+- Name: Cove DAO
+- Ticker: COVE
+- Initial supply: 1B
+- Modifiers
+  - Ownable/governance
+  - Permit
+  - Pausable
+    - Non-transferable for 18 months (anyone can unlock after)
+    - DAO can vote to enable transfers after 6 months
+  - Burnable
+- Additional functionality
+  - Rescue function for ETH/ERC20s
+  - Transfer allowlist
+  - [ARB style inflation](https://docs.arbitrum.foundation/airdrop-eligibility-distribution) (”Max 6% per year” starting after 3 years)
