@@ -1,22 +1,38 @@
 <svg width="1921" height="1080" viewBox="0 0 1921 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_4594_5754)">
+<mask id="mask0_4594_5754" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="1" y="0" width="1921" height="1080">
+<path d="M1921.55 0H1.5498V1080H1921.55V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_4594_5754)">
 <g opacity="0.3" filter="url(#filter0_f_4594_5754)">
-<path d="M-673.103 -791.921C-600.025 -1055.71 74.7565 -1099.26 834.067 -889.192C1593.38 -679.127 2149.68 -294.996 2076.6 -31.2077C2003.52 232.58 1173.05 -126.499 569.429 66.0661C-34.1928 258.63 -746.18 -528.133 -673.103 -791.921Z" fill="url(#paint0_linear_4594_5754)"/>
+<path d="M-672.103 -791.921C-599.025 -1055.71 75.7563 -1099.26 835.067 -889.192C1594.38 -679.127 2150.68 -294.996 2077.6 -31.2077C2004.52 232.58 1174.05 -126.499 570.429 66.0661C-33.193 258.63 -745.18 -528.133 -672.103 -791.921Z" fill="url(#paint0_linear_4594_5754)"/>
+</g>
+</g>
+<circle cx="1801" cy="960" r="208.75" stroke="#424F4B" stroke-width="0.5"/>
+<circle cx="1801" cy="960" r="166.95" stroke="#424F4B" stroke-width="0.5"/>
+<circle cx="1801" cy="960" r="125.15" stroke="#424F4B" stroke-width="0.5"/>
+<g clip-path="url(#clip1_4594_5754)">
+<path d="M1801 876.65C1847.05 876.65 1884.35 913.949 1884.35 960C1884.35 1006.05 1847.05 1043.35 1801 1043.35C1754.95 1043.35 1717.65 1006.05 1717.65 960C1717.65 913.949 1754.95 876.65 1801 876.65Z" stroke="#424F4B" stroke-width="0.5"/>
+<path d="M1801.79 945H1800.15C1798.18 951.862 1792.78 957.26 1785.92 959.226V960.871C1792.78 962.837 1798.18 968.235 1800.15 975.096H1801.79C1803.76 968.235 1809.15 962.837 1816.02 960.871V959.226C1809.15 957.26 1803.76 951.862 1801.79 945Z" stroke="#424F4B" stroke-width="0.5" stroke-miterlimit="10"/>
+<path d="M1828.27 966.587C1825.33 978.927 1814.23 988.116 1800.99 988.116C1785.48 988.116 1772.9 975.536 1772.9 960.026C1772.9 944.517 1785.48 931.937 1800.99 931.937C1814.23 931.937 1825.31 941.126 1828.27 953.466C1835.28 949.894 1841.5 945.019 1846.59 939.12C1838.67 921.865 1821.23 909.866 1801.01 909.866C1773.3 909.866 1750.85 932.318 1750.85 960.026C1750.85 987.735 1773.3 1010.19 1801.01 1010.19C1821.25 1010.19 1838.67 998.188 1846.59 980.933C1841.5 975.034 1835.3 970.139 1828.29 966.567L1828.27 966.587Z" stroke="#424F4B" stroke-width="0.5" stroke-miterlimit="10"/>
 </g>
 </g>
 <defs>
-<filter id="filter0_f_4594_5754" x="-778.298" y="-1122.16" width="2961.35" height="1318.24" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter0_f_4594_5754" x="-777.299" y="-1122.16" width="2961.35" height="1318.25" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
 <feGaussianBlur stdDeviation="50" result="effect1_foregroundBlur_4594_5754"/>
 </filter>
-<linearGradient id="paint0_linear_4594_5754" x1="1211.77" y1="-108.372" x2="-37.4289" y2="-123.616" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_4594_5754" x1="1212.77" y1="-108.372" x2="-36.4292" y2="-123.616" gradientUnits="userSpaceOnUse">
 <stop stop-color="#93C8E7"/>
 <stop offset="0.505208" stop-color="#E9FDA6" stop-opacity="0"/>
 <stop offset="1" stop-color="#E9FEA2"/>
 </linearGradient>
 <clipPath id="clip0_4594_5754">
 <rect width="1920" height="1080" fill="white" transform="translate(0.549805)"/>
+</clipPath>
+<clipPath id="clip1_4594_5754">
+<rect width="167.2" height="167.2" fill="white" transform="translate(1717.4 876.4)"/>
 </clipPath>
 </defs>
 </svg>

@@ -79,7 +79,8 @@
           ]
         },
         "ecosystem/cove-protocol",
-        "ecosystem/storm-labs"
+        "ecosystem/storm-labs",
+        "ecosystem/gauntlet"
       ]
     },
     {
