@@ -79,9 +79,16 @@
           ]
         },
         "ecosystem/cove-protocol",
-        "ecosystem/storm-labs",
-        "ecosystem/gauntlet",
-        "ecosystem/bazaar"
+        {
+          "group": "Partners",
+          "pages": [
+            "ecosystem/storm-labs",
+            "ecosystem/gauntlet",
+            "ecosystem/bazaar",
+            "ecosystem/ritual",
+            "ecosystem/4626-alliance"
+          ]
+        }
       ]
     },
     {
