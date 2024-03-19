@@ -80,7 +80,8 @@
         },
         "ecosystem/cove-protocol",
         "ecosystem/storm-labs",
-        "ecosystem/gauntlet"
+        "ecosystem/gauntlet",
+        "ecosystem/bazaar"
       ]
     },
     {
