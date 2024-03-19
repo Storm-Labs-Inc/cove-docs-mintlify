@@ -67,8 +67,8 @@
           "group": "$COVE",
           "pages": [
             "ecosystem/token/info",
-            "ecosystem/token/governance",
-            "ecosystem/token/launchpad"
+            "ecosystem/token/launchpad",
+            "ecosystem/token/governance"
           ]
         },
         {
