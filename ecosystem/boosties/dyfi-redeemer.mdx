@@ -3,10 +3,25 @@ title: dYFI Redeemer
 description: "Automatically redeem dYFI for YFI without holding ETH"
 ---
 
-Boosties also offers a special public good mechanism that allows users to claim **YFI** directly from their **dYFI** without needing **ETH**.
+<img src="/images/dyfi-hero.png" alt="dYFI Hero" noZoom />
 
-The redeemer contract just needs to be approved once for users to earn **YFI** from their **dYFI** earnings. Using Yearn’s Redemption contract and by flashloaning **ETH**, users can more effectively acquire **YFI**. This process occurs asynchronously and is also gas-free for users not calling the redeemer contract.
+## dYFI Redeemer
 
-When a user calls the redeemer contract it claims **dYFI→YFI** and sends **YFI** to all users that have already approved the redeemer contract. Anyone can call this contract as it is permissionless. Any extra ETH that is left due to slippage expectation is sent to the caller to incentivize automation. Users can opt-out of the redemptions by revoking the approved contract from their respective address.
+Boosties offers a special public good mechanism that allows users to claim
+**YFI** directly from their **dYFI** without needing **ETH**.
 
-To make things easier for users, redemptions will be processed periodically.
+The redeemer contract just needs to be approved once for users to earn **YFI**
+from their **dYFI** earnings. Using Yearn’s Redemption contract and by
+flashloaning **ETH**, users can more effectively acquire **YFI**. This process
+occurs asynchronously and is also gas-free for users not calling the redeemer
+contract.
+
+When a user calls the redeemer contract it claims **dYFI→YFI** and sends
+**YFI** to all users that have already approved the redeemer contract. Anyone
+can call this contract as it is permissionless. Any extra ETH that is returned
+in excess of the minimum amount is sent to the caller to incentivize
+automation. Users can opt-out of the redemptions by revoking the approved
+contract from their respective address.
+
+To make things easier for users, redemptions will be processed by keepers
+periodically.
