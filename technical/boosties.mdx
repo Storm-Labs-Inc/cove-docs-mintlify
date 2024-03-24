@@ -83,7 +83,7 @@ The smart contract system will consist of the following components:
 </Frame>
 
 - Anyone can trigger `YearnStakingDelegate.harvest(address gauge)`
-  - Upon harvest, the associated GaugeRewardReceiver will claim any pending dYFI from the corresponding gauge, and the rewards are split into 3 ways
+  - Upon harvest, the associated GaugeRewardReceiver will claim any pending dYFI from the corresponding gauge, and the rewards are split 4 ways:
     - Treasury split (default 0%, max 20%):
       - dYFI transfer to treasury
     - CoveYFI split (default 0%):
