@@ -73,6 +73,7 @@
     {
       "group": "Cove Ecosystem",
       "pages": [
+        "ecosystem/cove-protocol",
         {
           "group": "$COVE",
           "pages": [
@@ -89,7 +90,6 @@
             "ecosystem/boosties/dyfi-redeemer"
           ]
         },
-        "ecosystem/cove-protocol",
         {
           "group": "Partners",
           "pages": [
