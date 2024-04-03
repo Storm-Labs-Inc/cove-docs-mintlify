@@ -51,6 +51,16 @@
       "name": "Mirror",
       "icon": "newspaper",
       "url": "https://mirror.xyz/covefi.eth"
+    },
+    {
+      "name": "Discourse",
+      "icon": "discourse",
+      "url": "https://forum.cove.finance/"
+    },
+    {
+      "name": "Snapshot",
+      "icon": "bolt",
+      "url": "https://snapshot.org/#/covefi.eth"
     }
   ],
   "navigation": [
