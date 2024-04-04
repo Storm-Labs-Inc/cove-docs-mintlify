@@ -60,7 +60,7 @@
     {
       "name": "Snapshot",
       "icon": "bolt",
-      "url": "https://snapshot.org/#/covefi.eth"
+      "url": "https://vote.cove.finance/"
     }
   ],
   "navigation": [
@@ -75,19 +75,19 @@
       "pages": [
         "ecosystem/cove-protocol",
         {
-          "group": "$COVE",
-          "pages": [
-            "ecosystem/token/info",
-            "ecosystem/token/launchpad",
-            "ecosystem/token/governance"
-          ]
-        },
-        {
           "group": "Boosties",
           "pages": [
             "ecosystem/boosties/boosties",
             "ecosystem/boosties/coveyfi",
             "ecosystem/boosties/dyfi-redeemer"
+          ]
+        },
+        {
+          "group": "$COVE",
+          "pages": [
+            "ecosystem/token/info",
+            "ecosystem/token/launchpad",
+            "ecosystem/token/governance"
           ]
         },
         {
