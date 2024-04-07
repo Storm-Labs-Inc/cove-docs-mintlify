@@ -93,11 +93,11 @@
         {
           "group": "Partners",
           "pages": [
-            "ecosystem/storm-labs",
-            "ecosystem/gauntlet",
-            "ecosystem/bazaar",
-            "ecosystem/ritual",
-            "ecosystem/4626-alliance"
+            "ecosystem/partners/storm-labs",
+            "ecosystem/partners/gauntlet",
+            "ecosystem/partners/bazaar",
+            "ecosystem/partners/ritual",
+            "ecosystem/partners/4626-alliance"
           ]
         }
       ]
