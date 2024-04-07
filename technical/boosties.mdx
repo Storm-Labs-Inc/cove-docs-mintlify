@@ -60,7 +60,7 @@ The smart contract system will consist of the following components:
   />
 </Frame>
 
-- **YearnStakingDelegate (a.k.a. YSD)**: Responsible for locking YFI for veYFI. Yearn gauge tokens be held in this contract in order to receive the benefit of ve boosting. Additionally this contract should be able to delegate their veYFI in Snapshot such that its able to vote for initial voting rounds. Initially, an internal multisig will control the votes until a community counsel is established. It should also take future DAO on-chain voting mechanisms into consideration. The dYFI rewards given out by each gauge should be split into 4 potential destinations with configurable params by the protocol admin/DAO.
+- **YearnStakingDelegate (a.k.a. YSD)**: Responsible for locking YFI for veYFI. Yearn gauge tokens be held in this contract in order to receive the benefit of ve boosting. Additionally this contract should be able to delegate their veYFI in Snapshot such that its able to vote for initial voting rounds. Initially, an internal multisig will control the votes until a community counsel is established. It should also take future DAO onchain voting mechanisms into consideration. The dYFI rewards given out by each gauge should be split into 4 potential destinations with configurable params by the protocol admin/DAO.
   - `IYearnStakingDelegate.RewardSplit`
     - treasury
       - Cannot be higher than 20%. Sends to the treasury multisig.
