@@ -127,6 +127,7 @@
     {
       "group": "Resources",
       "pages": [
+        "resources/coveyfi-curve-pool",
         "resources/terms-of-service",
         "resources/privacy-policy",
         "resources/media-kit"
