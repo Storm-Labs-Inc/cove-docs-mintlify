@@ -20,6 +20,11 @@
     }
   },
   "backgroundImage": "/images/header-aura.svg",
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-CRVCPHERBP"
+    }
+  },
   "topbarLinks": [
     {
       "name": "Support",
