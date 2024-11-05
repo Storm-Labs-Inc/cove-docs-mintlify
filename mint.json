@@ -143,6 +143,7 @@
     {
       "group": "Technical Documentation",
       "pages": [
+        "technical/cove-rfc",
         {
           "group": "Boosties",
           "pages": [
