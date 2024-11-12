@@ -143,7 +143,13 @@
     {
       "group": "Technical Documentation",
       "pages": [
-        "technical/cove-rfc",
+        {
+          "group": "Cove",
+          "pages": [
+            "technical/cove-rfc",
+            "technical/cove-forge-docs"
+          ]
+        },
         {
           "group": "Boosties",
           "pages": [
