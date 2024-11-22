@@ -1,0 +1,151 @@
+---
+title: "Access Controls"
+description: "Access controls for Cove"
+---
+
+## Entity–relationship model with roles
+
+<Frame>
+  <img src="/images/rfc-er-model.png" alt="Entity-relationship model" />
+</Frame>
+
+## Contracts
+
+### BasketManager
+
+#### Roles
+
+| Role                       | Description                                         | Privileges                                              | Controlled By                                |
+| -------------------------- | --------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------- |
+| `_MANAGER_ROLE`            | Managers can create new baskets.                    | `createNewBasket`, `collectSwapFee`                     | Assigned during contract initialization.     |
+| `_PAUSER_ROLE`             | Can pause the contract.                             | `pause`                                                 | Assigned during contract initialization.     |
+| `_REBALANCE_PROPOSER_ROLE` | Can propose a new rebalance.                        | `proposeRebalance`                                      | Assigned during contract initialization.     |
+| `_TOKENSWAP_PROPOSER_ROLE` | Can propose a new token swap.                       | `proposeTokenSwap`                                      | Assigned during contract initialization.     |
+| `_TOKENSWAP_EXECUTOR_ROLE` | Can execute a token swap.                           | `executeTokenSwap`                                      | Assigned during contract initialization.     |
+| `_TIMELOCK_ROLE`           | Can set critical parameters like fees and adapters. | `setManagementFee`, `setSwapFee`, `setTokenSwapAdapter` | Assigned during contract initialization.     |
+| `_BASKET_TOKEN_ROLE`       | Role given to basket token contracts when created.  | `proRataRedeem`                                         | Assigned dynamically during basket creation. |
+
+#### Functions
+
+| Function Name         | Required Roles                         | Description                                                                  |
+| --------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `createNewBasket`     | `_MANAGER_ROLE`                        | Creates a new basket token with the given parameters.                        |
+| `proposeRebalance`    | `_REBALANCE_PROPOSER_ROLE`             | Proposes a rebalance for the given baskets.                                  |
+| `proposeTokenSwap`    | `_TOKENSWAP_PROPOSER_ROLE`             | Proposes internal and external trades for rebalancing baskets.               |
+| `executeTokenSwap`    | `_TOKENSWAP_EXECUTOR_ROLE`             | Executes token swaps proposed in `proposeTokenSwap`.                         |
+| `setManagementFee`    | `_TIMELOCK_ROLE`                       | Sets the management fee for a basket.                                        |
+| `setSwapFee`          | `_TIMELOCK_ROLE`                       | Sets the swap fee for the protocol.                                          |
+| `setTokenSwapAdapter` | `_TIMELOCK_ROLE`                       | Sets the address of the TokenSwapAdapter contract.                           |
+| `pause`               | `_PAUSER_ROLE` or `DEFAULT_ADMIN_ROLE` | Pauses the contract.                                                         |
+| `unpause`             | `DEFAULT_ADMIN_ROLE`                   | Unpauses the contract.                                                       |
+| `collectSwapFee`      | `_MANAGER_ROLE`                        | Claims the swap fee for a given asset and sends it to the protocol treasury. |
+
+#### Notes
+
+- The `_TIMELOCK_ROLE` is critical for setting parameters that affect the protocol's operation, such as fees and adapters.
+- `_BASKET_TOKEN_ROLE` is dynamically assigned to basket tokens during their creation, allowing them to call specific functions like `proRataRedeem`.
+
+### BasketToken
+
+#### Roles
+
+| Role              | Description                            | Privileges                                                                        | Controlled By                   |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------- |
+| `_BASKET_MANAGER` | Address of the BasketManager contract. | `fulfillDeposit`, `fulfillRedeem`, `fallbackRedeemTrigger`, `prepareForRebalance` | Assigned during initialization. |
+
+#### Functions
+
+| Function Name           | Required Roles    | Description                                                |
+| ----------------------- | ----------------- | ---------------------------------------------------------- |
+| `fulfillDeposit`        | `_BASKET_MANAGER` | Fulfills all pending deposit requests.                     |
+| `fulfillRedeem`         | `_BASKET_MANAGER` | Fulfills all pending redeem requests.                      |
+| `fallbackRedeemTrigger` | `_BASKET_MANAGER` | Triggers fallback logic for failed redemption fulfillment. |
+| `prepareForRebalance`   | `_BASKET_MANAGER` | Prepares the basket for rebalance by advancing the epoch.  |
+
+#### Notes
+
+- The `_BASKET_MANAGER` role is hardcoded to the BasketManager contract, ensuring only the manager can call critical functions.
+- The contract uses a fallback mechanism for failed redemptions, which is triggered by the BasketManager.
+
+### FeeCollector
+
+#### Roles
+
+| Role                 | Description                                     | Privileges                                             | Controlled By                            |
+| -------------------- | ----------------------------------------------- | ------------------------------------------------------ | ---------------------------------------- |
+| `DEFAULT_ADMIN_ROLE` | Admin role with full control over the contract. | `setProtocolTreasury`, `setSponsor`, `setSponsorSplit` | Assigned during contract initialization. |
+| `_BASKET_TOKEN_ROLE` | Role for basket tokens to notify fees.          | `notifyHarvestFee`                                     | Assigned dynamically by BasketManager.   |
+
+#### Functions
+
+| Function Name         | Required Roles                   | Description                                                      |
+| --------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| `setProtocolTreasury` | `DEFAULT_ADMIN_ROLE`             | Sets the protocol treasury address.                              |
+| `setSponsor`          | `DEFAULT_ADMIN_ROLE`             | Sets the sponsor for a given basket token.                       |
+| `setSponsorSplit`     | `DEFAULT_ADMIN_ROLE`             | Sets the sponsor fee split for a given basket token.             |
+| `notifyHarvestFee`    | `_BASKET_TOKEN_ROLE`             | Notifies the FeeCollector of fees collected from a basket token. |
+| `claimSponsorFee`     | None (only callable by sponsor)  | Claims the sponsor fee for a given basket token.                 |
+| `claimTreasuryFee`    | None (only callable by treasury) | Claims the treasury fee for a given basket token.                |
+
+#### Notes
+
+- The `_BASKET_TOKEN_ROLE` is dynamically assigned by the BasketManager to basket tokens, allowing them to notify fees.
+- Only the protocol treasury or admin can claim treasury fees.
+
+### AssetRegistry
+
+#### Roles
+
+| Role            | Description                                           | Privileges                   | Controlled By                            |
+| --------------- | ----------------------------------------------------- | ---------------------------- | ---------------------------------------- |
+| `_MANAGER_ROLE` | Role responsible for managing assets in the registry. | `addAsset`, `setAssetStatus` | Assigned during contract initialization. |
+
+#### Functions
+
+| Function Name    | Required Roles  | Description                                  |
+| ---------------- | --------------- | -------------------------------------------- |
+| `addAsset`       | `_MANAGER_ROLE` | Adds a new asset to the registry.            |
+| `setAssetStatus` | `_MANAGER_ROLE` | Sets the status of an asset in the registry. |
+
+#### Notes
+
+- The `_MANAGER_ROLE` is critical for adding and managing assets in the registry.
+- The contract uses a bit flag system to represent enabled assets, which is updated dynamically based on asset status.
+
+### StrategyRegistry
+
+#### Roles
+
+| Role                    | Description                               | Privileges                                      | Controlled By                            |
+| ----------------------- | ----------------------------------------- | ----------------------------------------------- | ---------------------------------------- |
+| `_WEIGHT_STRATEGY_ROLE` | Role given to approved weight strategies. | None (used for validation in `supportsBitFlag`) | Assigned during contract initialization. |
+
+#### Functions
+
+| Function Name     | Required Roles                           | Description                                                     |
+| ----------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| `supportsBitFlag` | None (validates `_WEIGHT_STRATEGY_ROLE`) | Checks if a given weight strategy supports a specific bit flag. |
+
+#### Notes
+
+- The `_WEIGHT_STRATEGY_ROLE` is used to validate weight strategies before calling their `supportsBitFlag` function.
+
+### ManagedWeightStrategy
+
+#### Roles
+
+| Role                 | Description                                     | Privileges                               | Controlled By                            |
+| -------------------- | ----------------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| `_MANAGER_ROLE`      | Role for managing target weights.               | `setTargetWeights`                       | Assigned during contract initialization. |
+| `DEFAULT_ADMIN_ROLE` | Admin role with full control over the contract. | Assigned during contract initialization. |
+
+#### Functions
+
+| Function Name      | Required Roles  | Description                                                |
+| ------------------ | --------------- | ---------------------------------------------------------- |
+| `setTargetWeights` | `_MANAGER_ROLE` | Sets the target weights for the assets for the next epoch. |
+
+#### Notes
+
+- The `_MANAGER_ROLE` is critical for setting target weights, which directly affect the strategy's behavior.
+- The contract uses a mapping to store target weights for each rebalance epoch and bit flag.

@@ -146,17 +146,18 @@
         {
           "group": "Cove",
           "pages": [
-            "technical/cove-rfc",
-            "technical/cove-forge-docs"
+            "technical/cove/rfc",
+            "technical/cove/access-controls",
+            "technical/cove/forge-docs"
           ]
         },
         {
           "group": "Boosties",
           "pages": [
-            "technical/boosties",
-            "technical/access-controls",
-            "technical/yearn-router",
-            "technical/forge-docs"
+            "technical/boosties/rfc",
+            "technical/boosties/access-controls",
+            "technical/boosties/yearn-router",
+            "technical/boosties/forge-docs"
           ]
         }
       ]
