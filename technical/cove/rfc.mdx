@@ -265,7 +265,7 @@ stateDiagram-v2
     - Inputs:
         - verifiedOrderHashes from BM contract storage and orders from emitted events.
     - Outputs:
-        - Submits the orders to CoWSwap API for to be executed.
+        - Submits the orders to CoWSwap API to be executed.
         - Note that CowSwap will revert any orderHashes that fail ERC-1271’s isValidSignature check.
             - https://docs.cow.fi/tutorials/how-to-place-erc-1271-smart-contract-orders/good-after-time-gat-orders
 </Accordion>
@@ -277,15 +277,16 @@ stateDiagram-v2
     - Permission
         - Can be permissionless with sufficient checks at BM level.
     - Checks:
-        - Rejects if we are waiting for swaps to be executed.
+        - If target weights are not met, enters a retry state. Returns rebalance status to "REBALANCED_PROPOSED" and starts the process of proposing token swaps again.
     - Inputs:
         - Current token balances.
         - Status of each external trade.
     - Outputs:
         - Calls `completeRebalance()`.
     - Effects:
-        - Saves the current token balances and the baskets’s ownership targets as actual values used by BM.
-        - Recalculates each basket’s pricePerShare.
+        - Claims and records the result of any external trade orders.
+        - Updates the basket managers internal accouting of each baskets balance of traded tokens.
+        - Recalculates each basket’s pricePerShare. //< I think this should be removed
         - Advances the epoch.
 </Accordion>
 
@@ -300,13 +301,13 @@ Governance can adjust window times and other parameters.
     - If proposer role doesn't call within the window, anyone can call `completeRebalance`.
 - `proposeTokenSwap`
     - Settles internal trades and checks minimum amounts for external trades against on-chain oracle values.
-    - Opens a 15-minute window for `executeTokenSwap`.
+    - Extends the current rebalance window for 15 more minutes to give time for swaps to be executed.
     - If not called within the window, anyone can call `completeRebalance`.
 - `executeTokenSwap`
     - Executes token swap with extra data if necessary.
     - After 15 minutes, anyone can call `completeRebalance`.
 - `completeRebalance`
-    - Checks if close to target weight.
+    - Checks if close to target weights.
         - If not, retries up to 3 times, resetting the state as if `proposeRebalance` was just called.
     - If pending redemptions can't be fulfilled (not enough base asset), basket tokens are notified of the failed rebalance and users must claim shares back.
 
@@ -485,10 +486,11 @@ Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard f
 
 #### Problems
 
-- It is difficult to know the price of each Basket’s tokens in USDT due to the portfolio aspect of Baskets, exchanging USDT to/from different assets every epoch.
+- It is difficult to know the price of each Basket’s tokens in USDT due to the portfolio aspect of Baskets, as it can be currently holding any combinations of its assets each epoch. <- maybe better wording needed
 
 #### Solutions
 
+- new totalAssets() method??
 - Use Chainlink oracle prices of base asset combined with 4626’s price per share:
 
     $$
@@ -626,7 +628,7 @@ The internal trade fee, set on a global level, is charged as both buy and sell t
 
 ## Oracles
 
-Cove uses oracles to value baskets, settle internal trades, and set minAmounts for rebalance swaps.  Cove will support pluggable oracle implementations.  The initial implementation will first sanity check each of the responses (e.g. stablecoins should be between $0.90 and $1.10 or ETH LSTs should be between 0.9 and 1.1 ETH) and then validate that primary response is within some threshold of the secondary/tertiary responses.  If any checks fail, the associated baskets will be paused until resumed by the operational multisig or governance.
+Cove uses oracles to value baskets and settle internal trades.  Cove will support pluggable oracle implementations.  The initial implementation will first remove? ->(sanity check each of the responses (e.g. stablecoins should be between $0.90 and $1.10 or ETH LSTs should be between 0.9 and 1.1 ETH)) and then validate that primary response is within some threshold of the secondary/tertiary responses.  If any checks fail, the associated baskets will be paused until resumed by the operational multisig or governance.
 
 - Primary: Live or near live price oracle
     - Pyth (preferable for settling internal trades since real-time prices can be pulled for accuracy, cost permitting)
@@ -646,14 +648,14 @@ Cove uses oracles to value baskets, settle internal trades, and set minAmounts f
 ## Supporting points programs
 
 In order to support points programs that are currently popular in the meta, BasketManager will include the following functionality:
-
+- Is below handled by the farming plugin or will it be separate functions? if so we do not have them yet***
 - An exec function that is scoped to allowlisted function signatures, which can only be added behind a timelock (e.g. to claim airdrops).
 - A rescue function that is scoped to assets not in the protocol’s asset universe (e.g. to send the claimed airdrops for distribution).
 
 ## Risks
 
 - Allocation proposers gas payment increases as the number of baskets grow.
-- Large amount of Baskets could be created to DDOS the system.
+- Large amount of Baskets could be created to DDOS the system. ** is this a realiztic risk with permissioned bm? (also new baskets are limited by asset + bitflag combination)
 - Incorrect price calculation of a single asset could lead to incorrect accounting of the baskets.
 - If Cove is unable to complete swaps to facilitate withdrawals users will be required to withdraw their assets in-kind.
 
