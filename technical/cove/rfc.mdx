@@ -646,11 +646,47 @@ In the ideal scenario, the prices at the end of the rebalance will not deviate g
 
 ## Fees
 
-The protocol incorporates a configurable management fee for each basket and a global internal trade fee, both measured in basis points (BPS).
+The protocol incorporates two types of fees: a configurable management fee for each basket and a global swap fee for internal trades. Both fees are measured in basis points (BPS) with a precision of 1e4.
 
-The management fee is calculated based on the time elapsed since its last computation, occurring at the start of every rebalance cycle and when users exit via pro-rata redeem. This fee is then divided between the protocol treasury and the strategy sponsor according to the protocol's configuration in FeeCollector contract.
+### Management Fee
 
-The internal trade fee, set on a global level, is charged as both buy and sell token upon every internal trade settlement. The protocol admin can claim this fee, which sends the underlying token to the protocol treasury without any further division.
+The management fee is calculated based on the time elapsed since its last computation, which occurs at the start of every rebalance cycle and when users exit via pro-rata redemption. The fee is determined using the following formula:
+
+$$ fee = totalSupply \times managementFeeBps \times \frac{timeSinceLastHarvest}{1e4 \times 365 days} $$
+
+Where:
+- `totalSupply` is the current total supply of the basket token, excluding shares held by the fee collector or pending redemption.
+- `managementFeeBps` is the management fee in BPS for the specific basket.
+- `timeSinceLastHarvest` is the time elapsed since the last fee harvest.
+
+The calculated fee is minted as new shares to the fee collector contract. The `FeeCollector` contract then divides the fee between the protocol treasury and the strategy sponsor according to the configured split percentage for each basket.
+
+### Swap Fee
+
+The swap fee is a global fee applied to all internal token swaps during rebalancing. It is charged on both the buy and sell tokens of each trade. The fee is calculated as follows:
+
+$$ feeOnSell = sellAmount \times \frac{swapFeeBps}{1e4} $$
+$$ feeOnBuy = buyAmount \times \frac{swapFeeBps}{1e4} $$
+
+Where:
+- `sellAmount` is the amount of the sell token being traded.
+- `buyAmount` is the amount of the buy token being received (before fee deduction).
+- `swapFeeBps` is the global swap fee in BPS.
+
+The swap fees are accumulated in the `BasketManager` contract for each token and can be claimed by the protocol admin, which transfers the collected fees to the protocol treasury. The swap fee is not further divided and goes entirely to the treasury.
+
+### Maximum Fees
+
+The protocol enforces maximum values for both the management fee and swap fee to prevent excessive fees from being set. The maximum fees are as follows:
+
+| Fee Type      | Maximum Value (BPS) |
+|---------------|---------------------|
+| Management Fee| 10,000 (100%)       |
+| Swap Fee      | 10,000 (100%)       |
+
+Note that while the maximum values are set to 100%, it is expected that realistic fee values will be significantly lower to ensure the competitiveness and sustainability of the protocol.
+
+The management fee for each basket can be set individually by the protocol admin via the `setManagementFee` function in the `BasketManager` contract. The global swap fee can be set by the admin using the `setSwapFee` function in the same contract. Both functions enforce the respective maximum fee limits and can only be called by the protocol admin role.
 
 ## Oracles
 
