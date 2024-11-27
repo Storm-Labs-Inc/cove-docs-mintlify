@@ -179,7 +179,7 @@ stateDiagram-v2
     - Input:
         - Any necessary data to determine the new weights.
     - Output
-        - Each **Weight Proposer** calls `WeightStrategy.proposeBasketWeights(address[] baskets, uint[] weights)`
+        - Each **Weight Proposer** calls `WeightStrategy.setTargetWeights(uint256 bitFlag, uint256[] weights)`
             - Gas cost increases as the number of baskets increases
             - Piecemeal - Each rebalance proposer submits new weights for baskets of each allocation type
                 1. WeightStrategyA = Gauntlet Optimized
@@ -208,17 +208,17 @@ stateDiagram-v2
         - None
     - Output:
         - During `BasketManager.proposeRebalance()`
-            - Each basket’s target weight and the protocol’s target weight is stored.
+            - Each basket’s target weight is fetched from the WeightStrategy contract and stored as a hash in the BasketManager contract.
 </Accordion>
 
-3. **TokenSwap Proposer (DAO)** calculates the optimal swap pairs to reach the target amounts of each basket and calls `BasketManager.proposeTokenSwap(Trade[] internalTrades, Trade[] externalTrades)` to submit all necessary swap amounts and associated basket information. BasketManager performs minimal on-chain validation to ensure the inputs align with each basket's target weights. If more advanced validation is needed, the role can be assigned to a separate contract using [Axiom](https://www.axiom.xyz/), transforming the process from a variable to a fixed cost.
+3. **TokenSwap Proposer (DAO)** calculates the optimal swap pairs to reach the target amounts of each basket and calls `BasketManager.proposeTokenSwap(Trade[] internalTrades, Trade[] externalTrades)` to submit all necessary swap amounts and the associated basket and target weight information. BasketManager performs minimal on-chain validation to ensure the inputs align with each basket's target weights. If more advanced validation is needed, the role can be assigned to a separate contract using [Axiom](https://www.axiom.xyz/), transforming the process from a variable to a fixed cost.
 
 <Accordion title="Details (Click to expand)">
     - The optimal internal trades and external trades should be calculated off-chain first.
     - Permission
         - Limited since the internal and external trades need to be optimized before submission.
     - Checks
-        - Check if the each trade’s value change with slippage is within threshold (no faulty swaps leading to value loss).
+        - Check if the each trade’s value change with slippage is within threshold (no apparent faulty swaps leading to value loss).
         - Check if the end state of baskets weights and protocol weight is within threshold.
         - Check if affected baskets include the tokens they are swapping from/to.
         - If possible, validate the methodology on chain.
@@ -291,7 +291,7 @@ stateDiagram-v2
 
 ### Window timings and retries
 
-Governance can adjust window times and other parameters.
+After each step, the 15-minute window is reset. If the proposer role doesn't call within the window, then anyone can call `completeRebalance` to exit the rebalance process.
 
 - `proposeRebalance`
     - Charges management fee and processes deposits for rebalancing baskets.
@@ -457,9 +457,10 @@ The Basket is then deployed using `keccak256(uint256 selectionBitFlag, address w
 
 Deposits will be asynchronous and will be fulfilled at the start of each rebalance. Users can claim their shares after the next rebalance is finished.
 
-- Users requests a deposit and transfers in the base asset.
-- Protocol processes deposits at the next rebalance proposal.
-- After the rebalance is finished, users who requested deposit can now claim their shares.
+- Users call `reuqestDeposit`
+    - This transfers the base asset to the BasketManager contract.
+- Protocol processes deposits at the next rebalance proposal, which transfers the base asset into the BasketManager, and credits the user's basket token contract with the corresponding shares.
+- After the rebalance is finished, users who requested deposit can now claim their shares by calling `deposit` or `mint` functions.
 
 ### Redeem
 
@@ -505,7 +506,7 @@ This process allows baskets to evolve over time by adding new assets while ensur
 
 ## LP tokens
 
-Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard for LP tokens and include permit functionality using Uniswap’s [Permit2](https://github.com/Uniswap/permit2) (EIP-2612).
+Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard for LP tokens.
 
 ### Pricing LP tokens
 
@@ -712,7 +713,7 @@ Assets that cannot be priced directly in USD will use a [CrossAdapter](https://g
 
 ## Risks
 
-- Allocation proposers gas payment increases as the number of baskets grow.
+- Managers of each WeightStrategy's gas payment increases as the number of baskets grow.
 - Incorrect price calculation of a single asset could lead to incorrect accounting of the baskets.
 - If Cove is unable to complete swaps to facilitate withdrawals users will be required to withdraw their assets in-kind.
 
