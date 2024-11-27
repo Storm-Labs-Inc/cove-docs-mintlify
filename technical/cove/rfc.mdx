@@ -455,7 +455,7 @@ The Basket is then deployed using `keccak256(uint256 selectionBitFlag, address w
 
 ### Deposit/Mint
 
-Deposits will be asynchronous and will be fulfilled at rebalance. Users can claim their shares after the next rebalance is finished.
+Deposits will be asynchronous and will be fulfilled at the start of each rebalance. Users can claim their shares after the next rebalance is finished.
 
 - Users requests a deposit and transfers in the base asset.
 - Protocol processes deposits at the next rebalance proposal.
@@ -471,11 +471,12 @@ Redeem will also be asynchronous if the user desires to receive the base asset o
         - Transfer the currently allocated assets of the basket the user calculated pro-rata.
         - $q_{i} = BT_{burn} \times \frac{q_{i,total}}{B}$
         - where $q_{i,total}$ is the total quantity of the i-th token in the basket, and $B$ is the total supply of basket tokens.
-    - Users receive a set of tokens instead of USDT.
+    - Users receive a set of tokens instead of the base asset.
 2. Asynchronously
-    - Users request to redeem and transfers in the basket token shares.
-    - Process redeems at the next rebalance.
-    - If the rebalance is successful, users who previously requested redeem can claim USDT and BM will burn the basket token shares.
+    - Users initiate the process by calling `requestRedeem`, which transfers their basket token shares and requests these shares to be burned in exchange for the base asset.
+    - Redeems are processed at the conclusion of the next rebalance. If the basket manager successfully acquires sufficient base assets, it transfers the corresponding base asset to each basket token contract and burns the requested basket token shares.
+        - If the rebalance fails, after its completion, the users can call `claimFallbackShares` to retrieve their previously requested basket token shares.
+    - Users who previously called `requestRedeem` can then call `redeem` or `withdraw` on the respective basket token contract to claim the underlying assets.
 
 ### Update bitFlag
 
@@ -510,10 +511,10 @@ Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard f
 
 #### Problems
 
-Pricing the tokens of each Basket in terms of USDT is challenging because:
+Pricing the tokens of each Basket in terms of a single token is challenging because:
 1. Each Basket can hold a diverse portfolio of assets.
 2. The specific combination and quantities of assets held by a Basket can vary from one epoch to another due to rebalancing.
-This dynamic nature of a Basket's composition makes it difficult to determine a straightforward USDT price for its tokens at any given point in time.
+This dynamic nature of a Basket's composition makes it difficult to determine a straightforward price for its tokens at any given point in time.
 
 #### Solutions
 
@@ -665,8 +666,8 @@ The calculated fee is minted as new shares to the fee collector contract. The `F
 
 The swap fee is a global fee applied to all internal token swaps during rebalancing. It is charged on both the buy and sell tokens of each trade. The fee is calculated as follows:
 
-$$ feeOnSell = sellAmount \times \frac{swapFeeBps}{1e4} $$
-$$ feeOnBuy = buyAmount \times \frac{swapFeeBps}{1e4} $$
+$$ feeOnSell = sellAmount \times \frac{swapFeeBps}{2e4} $$
+$$ feeOnBuy = buyAmount \times \frac{swapFeeBps}{2e4} $$
 
 Where:
 - `sellAmount` is the amount of the sell token being traded.
