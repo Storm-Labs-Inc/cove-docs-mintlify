@@ -265,7 +265,7 @@ stateDiagram-v2
     - Inputs:
         - verifiedOrderHashes from BM contract storage and orders from emitted events.
     - Outputs:
-        - Submits the orders to CoWSwap API to be executed.
+        - Submits the orders to the CoW Swap API for execution.
         - Note that CowSwap will revert any orderHashes that fail ERC-1271’s isValidSignature check.
             - https://docs.cow.fi/tutorials/how-to-place-erc-1271-smart-contract-orders/good-after-time-gat-orders
 </Accordion>
@@ -277,7 +277,7 @@ stateDiagram-v2
     - Permission
         - Can be permissionless with sufficient checks at BM level.
     - Checks:
-        - If target weights are not met, enters a retry state. Returns rebalance status to "REBALANCED_PROPOSED" and starts the process of proposing token swaps again.
+        - If target weights are not met within a specified tolerance, the rebalance enters a retry state. The rebalance status is set back to `REBALANCE_PROPOSED` and the token swap proposal process is restarted, allowing for additional iterations to converge closer to the target weights.
     - Inputs:
         - Current token balances.
         - Status of each external trade.
@@ -285,8 +285,7 @@ stateDiagram-v2
         - Calls `completeRebalance()`.
     - Effects:
         - Claims and records the result of any external trade orders.
-        - Updates the basket managers internal accouting of each baskets balance of traded tokens.
-        - Recalculates each basket’s pricePerShare. //< I think this should be removed
+        - Updates the BasketManager's internal accounting to reflect each basket's new token balances after the trades have been executed.
         - Advances the epoch.
 </Accordion>
 
@@ -301,13 +300,13 @@ Governance can adjust window times and other parameters.
     - If proposer role doesn't call within the window, anyone can call `completeRebalance`.
 - `proposeTokenSwap`
     - Settles internal trades and checks minimum amounts for external trades against on-chain oracle values.
-    - Extends the current rebalance window for 15 more minutes to give time for swaps to be executed.
+    - Prolongs the ongoing rebalance window by an additional 15 minutes to allow sufficient time for swap execution.
     - If not called within the window, anyone can call `completeRebalance`.
 - `executeTokenSwap`
     - Executes token swap with extra data if necessary.
     - After 15 minutes, anyone can call `completeRebalance`.
 - `completeRebalance`
-    - Checks if close to target weights.
+    - Checks if the current basket weights are within a specified tolerance of the target weights.
         - If not, retries up to 3 times, resetting the state as if `proposeRebalance` was just called.
     - If pending redemptions can't be fulfilled (not enough base asset), basket tokens are notified of the failed rebalance and users must claim shares back.
 
@@ -486,12 +485,14 @@ Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard f
 
 #### Problems
 
-- It is difficult to know the price of each Basket’s tokens in USDT due to the portfolio aspect of Baskets, as it can be currently holding any combinations of its assets each epoch. <- maybe better wording needed
+Pricing the tokens of each Basket in terms of USDT is challenging because:
+1. Each Basket can hold a diverse portfolio of assets.
+2. The specific combination and quantities of assets held by a Basket can vary from one epoch to another due to rebalancing.
+This dynamic nature of a Basket's composition makes it difficult to determine a straightforward USDT price for its tokens at any given point in time.
 
 #### Solutions
 
-- new totalAssets() method??
-- Use Chainlink oracle prices of base asset combined with 4626’s price per share:
+- Use oracle prices of base asset combined with 4626’s price per share:
 
     $$
     {BP}_{i}= \frac{\sum_{j=1}^{n} (q_{j} \cdot O_{j} \cdot P_{j})}{S_{i}}
@@ -628,34 +629,28 @@ The internal trade fee, set on a global level, is charged as both buy and sell t
 
 ## Oracles
 
-Cove uses oracles to value baskets and settle internal trades.  Cove will support pluggable oracle implementations.  The initial implementation will first remove? ->(sanity check each of the responses (e.g. stablecoins should be between $0.90 and $1.10 or ETH LSTs should be between 0.9 and 1.1 ETH)) and then validate that primary response is within some threshold of the secondary/tertiary responses.  If any checks fail, the associated baskets will be paused until resumed by the operational multisig or governance.
+Cove uses oracles to value baskets and settle internal trades.  Cove supports pluggable oracle implementations using the [euler-price-oracle](https://github.com/euler-xyz/euler-price-oracle) library (which adheres to [EIP-7726](https://eips.ethereum.org/EIPS/eip-7726)).
 
-- Primary: Live or near live price oracle
+- Primary: Near real-time price oracle
     - Pyth (preferable for settling internal trades since real-time prices can be pulled for accuracy, cost permitting)
-        - https://pyth.network/pyth-vs-chainlink
-        - https://pyth.network/blog/pyth-launches-price-oracles-on-ethereum-and-optimism
         - Pyth does not automatically submit the prices to the EVM networks: protocols and users are responsible for updating the on-chain Pyth price before using it. You may find a thorough explainer on the On-Demand Model in our [docs](https://docs.pyth.network/documentation/pythnet-price-feeds/on-demand).
-    - DEX TWAP or EMA oracles
-- Secondary: Update threshold based oracle
+- Secondary (anchor): Update threshold based oracle
     - Chainlink
-    - [Chronicle protocol](https://chroniclelabs.org/dashboard)
-        - Similar update cadence and limits as Chainlink
-- Tertiary: Uniswap V3 TWAP
 - Other potential options include:
+    - DEX TWAP or EMA oracles
+        - Uniswap V3 TWAP
     - [Gyroscope’s Consolidated Price Feed (CPF)](https://twitter.com/Mrfti_plus/status/1717475859374682560)
         - Includes a [series of circuit breakers](https://docs.gyro.finance/gyroscope-protocol/oracles/consolidated-price-feed#circuit-breakers) to protect against faulty oracles.
+    - [Chronicle protocol](https://chroniclelabs.org/dashboard)
+        - Similar update cadence and limits as Chainlink
 
-## Supporting points programs
+Oracles will primarily use [AnchoredOracle](https://github.com/Storm-Labs-Inc/cove-contracts-core/blob/master/src/AnchoredOracle.sol), a smart contract that implements a `PriceOracle` by retrieving quotes from a primary oracle and validating them against an anchor oracle. It ensures the primary quote is within a specified divergence range from the anchor quote before returning the price. This provides an additional layer of security against stale or manipulated oracle prices.
 
-In order to support points programs that are currently popular in the meta, BasketManager will include the following functionality:
-- Is below handled by the farming plugin or will it be separate functions? if so we do not have them yet***
-- An exec function that is scoped to allowlisted function signatures, which can only be added behind a timelock (e.g. to claim airdrops).
-- A rescue function that is scoped to assets not in the protocol’s asset universe (e.g. to send the claimed airdrops for distribution).
+Assets that cannot be priced directly in USD will use a [CrossAdapter](https://github.com/euler-xyz/euler-price-oracle/blob/master/src/adapter/CrossAdapter.sol) with the base asset.
 
 ## Risks
 
 - Allocation proposers gas payment increases as the number of baskets grow.
-- Large amount of Baskets could be created to DDOS the system. ** is this a realiztic risk with permissioned bm? (also new baskets are limited by asset + bitflag combination)
 - Incorrect price calculation of a single asset could lead to incorrect accounting of the baskets.
 - If Cove is unable to complete swaps to facilitate withdrawals users will be required to withdraw their assets in-kind.
 
