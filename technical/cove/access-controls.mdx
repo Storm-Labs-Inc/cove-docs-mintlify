@@ -12,7 +12,7 @@ description: "Access controls for Cove"
 ## Contracts
 
 The [community multisig](ecosystem/token/governance#community-multisig)
-controls `DEFAULT_ADMIN_ROLE` and `_TIMELOCK_ROLE`. Other roles will be
+controls `DEFAULT_ADMIN_ROLE` and `_TIMELOCK_ROLE` (via the [OpenZeppelin TimelockController contract](https://etherscan.io/address/0x705F82BB431fAdA1a0F11D7b77B3f0586c545CBc)). Other roles will be
 controlled by an ops multisig, EOAs for OpenZeppelin Defender keepers, and
 external strategists.
 
@@ -54,9 +54,9 @@ external strategists.
 
 **Roles**
 
-| Role              | Description                            | Privileges                                                                        | Controlled By |
-| ----------------- | -------------------------------------- | --------------------------------------------------------------------------------- | ------------- |
-| `_BASKET_MANAGER` | Address of the BasketManager contract. | `fulfillDeposit`, `fulfillRedeem`, `fallbackRedeemTrigger`, `prepareForRebalance` | N/A           |
+| Role              | Description                                     | Privileges                                                                        | Controlled By |
+| ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------------- | ------------- |
+| `_BASKET_MANAGER` | Role given to the associated BasketManager.      | `fulfillDeposit`, `fulfillRedeem`, `fallbackRedeemTrigger`, `prepareForRebalance` | N/A           |
 
 **Functions**
 
@@ -69,17 +69,17 @@ external strategists.
 
 **Notes**
 
-- The `_BASKET_MANAGER` role is hardcoded to the BasketManager contract, ensuring only the manager can call critical functions.
+- The `_BASKET_MANAGER` role is only given to the BasketManager contract at the BasketToken creation, ensuring only the BasketManager contract can call critical functions during the rebalance cycle.
 - The contract uses a fallback mechanism for failed redemptions, which is triggered by the BasketManager.
 
 ### FeeCollector
 
 **Roles**
 
-| Role                 | Description                                     | Privileges                                             | Controlled By |
-| -------------------- | ----------------------------------------------- | ------------------------------------------------------ | ------------- |
-| `DEFAULT_ADMIN_ROLE` | Admin role with full control over the contract. | `setProtocolTreasury`, `setSponsor`, `setSponsorSplit` | N/A           |
-| `_BASKET_TOKEN_ROLE` | Role for basket tokens to notify fees.          | `notifyHarvestFee`                                     | N/A           |
+| Role                 | Description                                     | Privileges                                             | Controlled By        |
+| -------------------- | ----------------------------------------------- | ------------------------------------------------------ | -------------------- |
+| `DEFAULT_ADMIN_ROLE` | Admin role with full control over the contract. | `setProtocolTreasury`, `setSponsor`, `setSponsorSplit` | `DEFAULT_ADMIN_ROLE` |
+| `_BASKET_TOKEN_ROLE` | Role given to each BasketToken contract         | `notifyHarvestFee`                                     | `DEFAULT_ADMIN_ROLE` |
 
 **Functions**
 
@@ -123,7 +123,7 @@ external strategists.
 
 | Role                    | Description                               | Privileges                                      | Controlled By        |
 | ----------------------- | ----------------------------------------- | ----------------------------------------------- | -------------------- |
-| `DEFAULT_ADMIN_ROLE`    | Admin role for managing the contract.     | Can assign/revoke roles and manage strategies.  | N/A                  |
+| `DEFAULT_ADMIN_ROLE`    | Admin role for managing the contract.     | Can assign/revoke roles and manage strategies.  | `DEFAULT_ADMIN_ROLE` |
 | `_WEIGHT_STRATEGY_ROLE` | Role given to approved weight strategies. | None (used for validation in `supportsBitFlag`) | `DEFAULT_ADMIN_ROLE` |
 
 **Functions**
@@ -140,10 +140,10 @@ external strategists.
 
 **Roles**
 
-| Role                 | Description                                     | Privileges         | Controlled By        |
-| -------------------- | ----------------------------------------------- | ------------------ | -------------------- |
-| `DEFAULT_ADMIN_ROLE` | Admin role with full control over the contract. |                    | N/A                  |
-| `_MANAGER_ROLE`      | Role for managing target weights.               | `setTargetWeights` | `DEFAULT_ADMIN_ROLE` |
+| Role                 | Description                                                                                       | Privileges         | Controlled By        |
+| -------------------- | ------------------------------------------------------------------------------------------------- | ------------------ | -------------------- |
+| `DEFAULT_ADMIN_ROLE` | Admin role responsible for assigning and revoking `_MANAGER_ROLE`.                                |                    | `DEFAULT_ADMIN_ROLE` |
+| `_MANAGER_ROLE`      | Role responsible for managing assets and setting target weights for the assets in the strategy.   | `setTargetWeights` | `DEFAULT_ADMIN_ROLE` |
 
 **Functions**
 
@@ -154,4 +154,4 @@ external strategists.
 **Notes**
 
 - The `_MANAGER_ROLE` is critical for setting target weights, which directly affect the strategy's behavior.
-- The contract uses a mapping to store target weights for each rebalance epoch and bit flag.
+- The contract uses a mapping to store target weights for each bit flag.
