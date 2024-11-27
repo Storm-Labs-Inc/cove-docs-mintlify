@@ -715,6 +715,29 @@ Assets that cannot be priced directly in USD will use a [CrossAdapter](https://g
 - Incorrect price calculation of a single asset could lead to incorrect accounting of the baskets.
 - If Cove is unable to complete swaps to facilitate withdrawals users will be required to withdraw their assets in-kind.
 
+## Monitoring and Emergency Functionality
+
+Cove includes several features to monitor the system and respond to emergencies:
+
+### Protocol and Asset Level Pausing
+
+The protocol allows for pausing at both the protocol and asset level. When paused, all baskets that contain the paused asset will be affected, but pro-rata withdrawals are still allowed. This functionality is implemented in the `BasketManager` contract.
+
+### Off-Chain Keepers for Oracle Price Monitoring
+
+Off-chain keepers, such as OpenZeppelin Defender, will be used to monitor oracle prices in real-time. For example, if the price of USDT falls below 0.99, the keeper can automatically pause the protocol to prevent further issues.
+
+### Real-Time Anomaly Detection Protocols/Services
+
+Cove plans to integrate with real-time anomaly detection protocols and services, such as [Forta](https://forta.org/), which can help identify and respond to potential threats or unusual activity within the protocol. These services can monitor for a wide range of issues, including:
+
+- Unexpected changes in asset prices
+- Large or suspicious transactions
+- Unauthorized access attempts
+- Smart contract vulnerabilities
+
+By leveraging these monitoring and emergency response features, Cove can quickly identify and mitigate potential risks, ensuring the safety and security of users' funds.
+
 ## Alternatives considered
 
 - Rebalancing methods
