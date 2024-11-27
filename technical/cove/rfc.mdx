@@ -477,6 +477,31 @@ Redeem will also be asynchronous if the user desires to receive the base asset o
     - Process redeems at the next rebalance.
     - If the rebalance is successful, users who previously requested redeem can claim USDT and BM will burn the basket token shares.
 
+### Update bitFlag
+
+The `BasketManager` contract allows the bitFlag of an existing basket to be updated through the `updateBitFlag` function. This function is restricted to only be callable by the `_TIMELOCK_ROLE`.
+
+To update a basket's bitFlag:
+
+1. Call `updateBitFlag(address basket, uint256 bitFlag)` with the following parameters:
+   - `basket`: The address of the basket token to update.
+   - `bitFlag`: The new bitFlag value. It must be a superset of the current bitFlag.
+
+2. The function will perform the following checks:
+   - The `basket` must exist and be registered in `basketTokenToIndexPlusOne`.
+   - The new `bitFlag` must be different from the current one.
+   - The new `bitFlag` must be a superset of the current bitFlag, meaning it includes all the bits set in the current bitFlag.
+   - The basket's strategy must support the new `bitFlag`.
+   - The new `basketId` (hash of `bitFlag` and `strategy`) must not already exist to prevent duplicate baskets.
+
+3. If all checks pass:
+   - The old `basketId` mapping is removed and the new one is added to `basketIdToAddress`.
+   - The `basketAssets` for the basket are updated based on the new `bitFlag`.
+   - The `BasketBitFlagUpdated` event is emitted with the old and new bitFlag values and IDs.
+   - The `bitFlag` is updated in the `BasketToken` contract.
+
+This process allows baskets to evolve over time by adding new assets while ensuring compatibility with the strategy and preventing duplicate baskets from being created.
+
 ## LP tokens
 
 Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard for LP tokens and include permit functionality using Uniswap’s [Permit2](https://github.com/Uniswap/permit2) (EIP-2612).
