@@ -457,7 +457,7 @@ The Basket is then deployed using `keccak256(uint256 selectionBitFlag, address w
 
 Deposits will be asynchronous and will be fulfilled at the start of each rebalance. Users can claim their shares after the next rebalance is finished.
 
-- Users call `reuqestDeposit`
+- Users call `requestDeposit`
     - This transfers the base asset to the BasketManager contract.
 - Protocol processes deposits at the next rebalance proposal, which transfers the base asset into the BasketManager, and credits the user's basket token contract with the corresponding shares.
 - After the rebalance is finished, users who requested deposit can now claim their shares by calling `deposit` or `mint` functions.
