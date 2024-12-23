@@ -95,7 +95,7 @@ flowchart TD
         Swap(["Emit events / Execute swap and update execution timeout"])
         R3["Revert"]
   end
- subgraph d["Complete TokenSwap"]
+ subgraph d["Complete Rebalance"]
         Q6(["Has TokenSwap Proposal timed out?"])
         Q7(["Have TokenSwap Executions timed out?"])
         Q8(["Has retry limit been reached?"])
