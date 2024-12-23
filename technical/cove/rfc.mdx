@@ -319,6 +319,7 @@ sequenceDiagram
     participant RebalanceProposer as Rebalance Proposer
     participant BasketManagerSC as BasketManager (using CowSwapAdapter)
     participant CoWSwapAdapter as CoWSwap Adapter
+    participant CoWSwapClone as CoWSwapClone
     participant TokenSwapProposer as TokenSwap Proposer
     participant CowSwapAPI as CoWSwap API
     participant TokenSwapExecutor as TokenSwap Executor
@@ -331,9 +332,9 @@ sequenceDiagram
     BasketManagerSC->>BasketManagerSC: Pause the protocol and start rebalance process
     deactivate BasketManagerSC
 
+    loop Retry behavior
     TokenSwapProposer-->>BasketManagerSC: Read the current state of the baskets and their target weights
     TokenSwapProposer->>TokenSwapProposer: Determine optimized set of trades to reach target weights
-
     TokenSwapProposer->>BasketManagerSC: proposeTokenSwap(InternalTrade[], ExternalTrade[])
     activate BasketManagerSC
     BasketManagerSC->>BasketManagerSC: Validate and immediately settle internal trades
@@ -341,7 +342,7 @@ sequenceDiagram
     deactivate BasketManagerSC
 
     %% Stage 2: Token Swap Intent Proposal
-    loop Retry behavior
+
     TokenSwapExecutor-->>BasketManagerSC: Read external trades
     BasketManagerSC-->>TokenSwapExecutor: Return external trades
     TokenSwapExecutor->>CowSwapAPI: Get quotes for token swaps
@@ -355,20 +356,24 @@ sequenceDiagram
     activate BasketManagerSC
     BasketManagerSC->>CoWSwapAdapter: delegatecall.executeTokenSwap(data)
     activate CoWSwapAdapter
-    CoWSwapAdapter->>CoWSwapAdapter: Decode, validate and emit events
-    CoWSwapAdapter->>CoWSwapAdapter: Store orderUIDs/orderHashes
+    CoWSwapAdapter->>CoWSwapClone: Clone and initialize the swapper contract per swap
+    activate CoWSwapClone
+    CoWSwapClone->>CoWSwapClone: Decode, validate and emit events
+    CoWSwapClone->>CoWSwapClone: Store orderUIDs/orderHashes
+    CoWSwapClone->>CoWSwapAdapter: 
+    deactivate CoWSwapClone
     CoWSwapAdapter-->>BasketManagerSC: end delegatecall
     deactivate CoWSwapAdapter
     deactivate BasketManagerSC
 
     %% Stage 3: Token Swap Intent Execution
-    TokenSwapExecutor-->>BasketManagerSC: Read orderHashes
-    BasketManagerSC-->>TokenSwapExecutor: Return orderHashes
+    TokenSwapExecutor-->>CoWSwapClone: Read orderHashes
+    CoWSwapClone-->>TokenSwapExecutor: Return orderHashes
 
     TokenSwapExecutor->>CowSwapAPI: Submit orders for execution
     activate CowSwapAPI
-    CowSwapAPI-->>BasketManagerSC: ERC1271.isValidSignature(hash, bytes)
-    BasketManagerSC-->>CowSwapAPI: Signature verification and swap execution
+    CowSwapAPI-->>CoWSwapClone: ERC1271.isValidSignature(hash, bytes)
+    CoWSwapClone-->>CowSwapAPI: Signature verification and swap execution
     deactivate CowSwapAPI
 
     %% Stage 4: Complete Rebalance
@@ -398,6 +403,7 @@ sequenceDiagram
     BasketManagerSC->>BasketManagerSC: Validate target weights
     BasketManagerSC->>BasketManagerSC: Pause the protocol and start rebalance process
     deactivate BasketManagerSC
+    loop Retry behavior
     TokenSwapProposer-->>BasketManagerSC: Read the current state of the baskets and their target weights
     TokenSwapProposer->>TokenSwapProposer: Determine optimized set of trades to reach target weights
     TokenSwapProposer->>BasketManagerSC: proposeTokenSwap(InternalTrade[], ExternalTrade[])
@@ -408,7 +414,6 @@ sequenceDiagram
     %% Stage 2: Token Swap Intent Proposal
     TokenSwapExecutor-->>BasketManagerSC: Read external trades
     BasketManagerSC-->>TokenSwapExecutor: Return external trades
-    loop Retry behavior
     TokenSwapExecutor->>BasketManagerSC: executeTokenSwap(data)
     activate BasketManagerSC
     BasketManagerSC->>GenericDutchAuctionAdapter: delegatecall.executeTokenSwap(data)
@@ -457,7 +462,7 @@ The Basket is then deployed using `keccak256(uint256 selectionBitFlag, address w
 
 Deposits will be asynchronous and will be fulfilled at the start of each rebalance. Users can claim their shares after the next rebalance is finished.
 
-- Users call `reuqestDeposit`
+- Users call `requestDeposit`
     - This transfers the base asset to the BasketManager contract.
 - Protocol processes deposits at the next rebalance proposal, which transfers the base asset into the BasketManager, and credits the user's basket token contract with the corresponding shares.
 - After the rebalance is finished, users who requested deposit can now claim their shares by calling `deposit` or `mint` functions.
