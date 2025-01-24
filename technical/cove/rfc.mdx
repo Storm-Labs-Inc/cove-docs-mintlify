@@ -722,6 +722,14 @@ Assets that cannot be priced directly in USD will use a [CrossAdapter](https://g
 - Incorrect price calculation of a single asset could lead to incorrect accounting of the baskets.
 - If Cove is unable to complete swaps to facilitate withdrawals users will be required to withdraw their assets in-kind.
 
+### Potential Griefing Attack via Pending Deposits/Redeems
+
+When users call `requestDeposit` or `requestRedeem`, the system ensures that the controller does not have any pending or claimable deposits or redeems from the controller's `lastDepositRequestId`.
+
+This behavior allows for a potential griefing attack: an attacker can call `requestDeposit` or `requestRedeem` with a minimal dust amount and specify the target controller address. As a result, the target controller would then be unable to make legitimate `requestDeposit` or `requestRedeem` requests until they first claim the pending request.
+
+**Recommendation for Integrators**: When integrating the `BasketToken` into other contracts, always check for any pending or claimable tokens before requesting a deposit or redeem. This ensures that any pending deposits or redeems are resolved, preventing such griefing attacks.
+
 ## Monitoring and Emergency Functionality
 
 Cove includes several features to monitor the system and respond to emergencies:
