@@ -659,7 +659,7 @@ The protocol incorporates two types of fees: a configurable management fee for e
 
 The management fee is calculated based on the time elapsed since its last computation, which occurs at the start of every rebalance cycle and when users exit via pro-rata redemption. The fee is determined using the following formula:
 
-$$ fee = totalSupply \times managementFeeBps \times \frac{timeSinceLastHarvest}{1e4 \times 365 days} $$
+$$ fee = totalSupply \times managementFeeBps \times \frac{timeSinceLastHarvest}{(1e4 - managementFeeBps) \times 365 days} $$
 
 Where:
 - `totalSupply` is the current total supply of the basket token, excluding shares held by the fee collector or pending redemption.
