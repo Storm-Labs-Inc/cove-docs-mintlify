@@ -54,9 +54,9 @@ external strategists.
 
 **Roles**
 
-| Role              | Description                                     | Privileges                                                                        | Controlled By |
-| ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------------- | ------------- |
-| `_BASKET_MANAGER` | Role given to the associated BasketManager.      | `fulfillDeposit`, `fulfillRedeem`, `fallbackRedeemTrigger`, `prepareForRebalance` | N/A           |
+| Role              | Description                                 | Privileges                                                                        | Controlled By |
+| ----------------- | ------------------------------------------- | --------------------------------------------------------------------------------- | ------------- |
+| `_BASKET_MANAGER` | Role given to the associated BasketManager. | `fulfillDeposit`, `fulfillRedeem`, `fallbackRedeemTrigger`, `prepareForRebalance` | N/A           |
 
 **Functions**
 
@@ -140,10 +140,10 @@ external strategists.
 
 **Roles**
 
-| Role                 | Description                                                                                       | Privileges         | Controlled By        |
-| -------------------- | ------------------------------------------------------------------------------------------------- | ------------------ | -------------------- |
-| `DEFAULT_ADMIN_ROLE` | Admin role responsible for assigning and revoking `_MANAGER_ROLE`.                                |                    | `DEFAULT_ADMIN_ROLE` |
-| `_MANAGER_ROLE`      | Role responsible for managing assets and setting target weights for the assets in the strategy.   | `setTargetWeights` | `DEFAULT_ADMIN_ROLE` |
+| Role                 | Description                                                                                     | Privileges         | Controlled By        |
+| -------------------- | ----------------------------------------------------------------------------------------------- | ------------------ | -------------------- |
+| `DEFAULT_ADMIN_ROLE` | Admin role responsible for assigning and revoking `_MANAGER_ROLE`.                              |                    | `DEFAULT_ADMIN_ROLE` |
+| `_MANAGER_ROLE`      | Role responsible for managing assets and setting target weights for the assets in the strategy. | `setTargetWeights` | `DEFAULT_ADMIN_ROLE` |
 
 **Functions**
 
