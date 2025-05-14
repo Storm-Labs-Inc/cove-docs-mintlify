@@ -10,11 +10,11 @@ Traditional automated market makers (AMMs) are not well suited for portfolio or 
 
 > *"We found that for the 17 pools we analyzed, covering 43% of TVL and chosen by size, composite tokens and data availability, total fees earned since inception until the cut-off date was $199.3m. We also found that the total IL suffered by LPs during this period was USD 260.1m, meaning that in aggregate those LPs would have been better off by USD 60.8m had they simply HODLd."*
 >
-> Stefan Loesch, Nate Hindman, Mark B Richardson, Nicholas Welch: “Impermanent Loss in Uniswap v3”, 2021; [arXiv:2111.09192](http://arxiv.org/abs/2111.09192).
+> Stefan Loesch, Nate Hindman, Mark B Richardson, Nicholas Welch: "Impermanent Loss in Uniswap v3", 2021; [arXiv:2111.09192](http://arxiv.org/abs/2111.09192).
 
-> *“Thus, providing liquidity has become a game reserved for sophisticated players with the introduction of Uniswap V3, where retail traders do not stand a chance.”*
+> *"Thus, providing liquidity has become a game reserved for sophisticated players with the introduction of Uniswap V3, where retail traders do not stand a chance."*
 >
-> Lioba Heimbach, Eric Schertenleib, Roger Wattenhofer: “Risks and Returns of Uniswap V3 Liquidity Providers”, 2022; [arXiv:2205.08904](http://arxiv.org/abs/2205.08904). DOI: [10.1145/3558535.3559772](https://dx.doi.org/10.1145/3558535.3559772).
+> Lioba Heimbach, Eric Schertenleib, Roger Wattenhofer: "Risks and Returns of Uniswap V3 Liquidity Providers", 2022; [arXiv:2205.08904](http://arxiv.org/abs/2205.08904). DOI: [10.1145/3558535.3559772](https://dx.doi.org/10.1145/3558535.3559772).
 
 We propose an alternative solution that eliminates LVR and guarantees general intent level execution as a lower bound (e.g. CoW Swap).
 
@@ -22,7 +22,7 @@ This document introduces the BasketManager contract, which handles protocol depo
 
 ## Summary
 
-Cove functions as an intent aggregator for liquidity providers (LPs). Users express their intent by choosing a weight strategy and a combination of ERC-20/4626 tokens (represented as an LP token). These choices form a basket, such as Gauntlet-optimized yield strategy with sDAI/sFRAX, a market cap weighted index strategy with stETH/sfrxETH/yETH, or custom weights. This approach limits the number of options while allowing the protocol to aggregate deposits efficiently.  The weight strategy determines the weights of each token in a basket.  When the protocol rebalances, there is the potential for [coincidence of wants](https://en.wikipedia.org/wiki/Coincidence_of_wants) (CoW) to exist between baskets, like ring trades in [CoW Swap’s batch auctions](https://docs.cow.fi/overview/coincidence-of-wants).  Approximately maximizing the volume of CoWs given the current/target protocol level allocations is solvable off-chain with linear programming.  When there are matches, trades execute without leaking value (i.e. no price impact/slippage/fees/MEV from accessing exogenous liquidity).  External trades are routed through CoW Swap, which now supports programmatic orders including TWAP via their [Programatic Order Framework](https://blog.cow.fi/introducing-the-programmatic-order-framework-from-cow-protocol-088a14cb0375), to ensure the best execution and capture positive slippage.  The protocol includes configurable/switchable fees for management and internal trades.
+Cove functions as an intent aggregator for liquidity providers (LPs). Users express their intent by choosing a weight strategy and a combination of ERC-20/4626 tokens (represented as an LP token). These choices form a basket, such as Gauntlet-optimized yield strategy with sDAI/sFRAX, a market cap weighted index strategy with stETH/sfrxETH/yETH, or custom weights. This approach limits the number of options while allowing the protocol to aggregate deposits efficiently.  The weight strategy determines the weights of each token in a basket.  When the protocol rebalances, there is the potential for [coincidence of wants](https://en.wikipedia.org/wiki/Coincidence_of_wants) (CoW) to exist between baskets, like ring trades in [CoW Swap's batch auctions](https://docs.cow.fi/overview/coincidence-of-wants).  Approximately maximizing the volume of CoWs given the current/target protocol level allocations is solvable off-chain with linear programming.  When there are matches, trades execute without leaking value (i.e. no price impact/slippage/fees/MEV from accessing exogenous liquidity).  External trades are routed through CoW Swap, which now supports programmatic orders including TWAP via their [Programatic Order Framework](https://blog.cow.fi/introducing-the-programmatic-order-framework-from-cow-protocol-088a14cb0375), to ensure the best execution and capture positive slippage.  The protocol includes configurable/switchable fees for management and internal trades.
 
 To ensure safe rebalancing, BasketManager follows a sequence of proposing, executing, and finalizing a rebalance while temporarily pausing deposits and withdrawals for the affected baskets. As BasketManager pools assets for all Baskets, the rebalancing process considers each Basket's asset preferences and weight strategy. For example, when a new deposit arrives for a Basket with a limited token selection and a market cap weighted strategy, BasketManager deploys funds according to the respective weights, crediting the Basket for the new deposit without impacting other Baskets. Once the rebalance is complete, the tracked balances within BM are updated to reflect any changes resulting from swaps since the previous rebalance.
 
@@ -32,12 +32,12 @@ To ensure safe rebalancing, BasketManager follows a sequence of proposing, execu
 
 👮 Permissioned Actor
 
-🧑 Permissionless Actor
+🧑 Permissionless Actor
 
 - **Smart Contract - BasketManager 📄**
     - The BasketManager contract is the core component of the Cove protocol, responsible for managing user deposits, withdrawals, and LP tokens. It also handles the rebalancing process, custody of user assets, and execution of trades. By pooling assets from all baskets, BasketManager enables efficient rebalancing and increased value capture through internal trade matching.
 - **Smart Contract - BasketToken 📄**
-    - Token representing BasketManager’s user deposits. Each BasketToken is defined and created with immutable selection of assets that will be considered for allocating and a weight strategy which determines the weights of the selected assets.  The maximum number of selected assets will be capped and configurable (e.g. start at 4 with a maximum of 8).
+    - Token representing BasketManager's user deposits. Each BasketToken is defined and created with immutable selection of assets that will be considered for allocating and a weight strategy which determines the weights of the selected assets.  The maximum number of selected assets will be capped and configurable (e.g. start at 4 with a maximum of 8).
 - **Smart Contract - WeightStrategy 📄**
     - Contract that each Basket is linked to for determining asset weights. Each weight strategy contract is associated with a single weight proposer who controls weight updates. Weights define the proportions of assets within a basket. Multiple baskets with varying asset selections can use the same WeightStrategy, provided the WeightStrategy supports all assets chosen by each basket.
     - When a Basket is created, an WeightStrategy address must be supplied.
@@ -45,7 +45,7 @@ To ensure safe rebalancing, BasketManager follows a sequence of proposing, execu
     - Adapters are modular contracts that are written to execute trades (e.g. via an aggregator or auction). BM can support both intent based aggregators and on-chain execution aggregators as long as their parameters/states are verifiable by BM.
     - Intent based aggregators that support smart contract signing via ERC-1271 are supported, such as CoW Swap.
     - A generic dutch auction adapter with a flash loan-like mechanism could be implemented such that any on-chain user-executable aggregator is compatible.  This also allows for easy deployment to other chains or L2s.
-    - Another adapter could be used to swap more efficiently between 4626 tokens with the same underlying assets, or for lossless conversions between assets like USDC\<\>DAI using MakerDAO’s PSM.
+    - Another adapter could be used to swap more efficiently between 4626 tokens with the same underlying assets, or for lossless conversions between assets like USDC\<\>DAI using MakerDAO's PSM.
 - **Actor - Weight Proposer 👮/📄**
     - Actors responsible for updating their associated WeightStrategy contracts with the new weights for all baskets subscribed to it.
 - **Actor - Rebalance Proposer 👮/📄**
@@ -54,7 +54,7 @@ To ensure safe rebalancing, BasketManager follows a sequence of proposing, execu
     - Calculates an optimized set of internal and external trades to execute in this rebalance and submits them to BasketManager.
 - **Actor - TokenSwap Executor 👮**
     - Role that submits the calldata required to execute the submitted external trades.
-    - If the Basket’s AggregatorAdapter is synchronous, TokenSwapProposer also executes the swaps.
+    - If the Basket's AggregatorAdapter is synchronous, TokenSwapProposer also executes the swaps.
 - **Actor - Rebalance Executor 🧑**
     - Permissionless role that completes an ongoing rebalance and advances the epoch. Checks on the progress of the current rebalance are made.
 
@@ -62,7 +62,7 @@ To ensure safe rebalancing, BasketManager follows a sequence of proposing, execu
 
 - Dependent oracles do not report incorrect prices.
 - BasketManager does not have on-chain access to live quotes from aggregators.
-    - We assume the confidence intervals given by Pyth Oracles are sufficient to use. An oracle registry will be managed by the DAO and individual Oracle wrappers can be deployed to support additional operations (aggregating, applying 4626’s price per share, etc).
+    - We assume the confidence intervals given by Pyth Oracles are sufficient to use. An oracle registry will be managed by the DAO and individual Oracle wrappers can be deployed to support additional operations (aggregating, applying 4626's price per share, etc).
 - TokenSwapProposer uses the ideal exchange rates derived from on-chain oracles instead of live quotes when generating the list of internal and external trades.
 - RebalanceProposer will submit a set of internal and external trades that describes the changes in ALL baskets.
 - Assets in BM are high quality (e.g. USDT, USDC, sDAI, sFRAX, stETH, cbETH) - liquid with low volatility and minimal instances of depegging.
@@ -167,7 +167,7 @@ stateDiagram-v2
 
 1. Each **Weight Proposer** asynchronously updates any **WeightStrategy** instances that they manage.
     - Updates can be proposed until the rebalance starts.  For resolvers that have not been updated since the last rebalance, the prior target weights will be reused.
-    - If a Weight Strategy’s methodology is difficult to prove or implement on-chain, the Weight Proposer for the strategy should be permissioned.
+    - If a Weight Strategy's methodology is difficult to prove or implement on-chain, the Weight Proposer for the strategy should be permissioned.
 
 <Accordion title="Details (Click to expand)">
     - Permission
@@ -186,20 +186,20 @@ stateDiagram-v2
                     1. Basket A,B weights
                 2. WeightStrategyB = Seven Seas Capital Optimized
                     1. Basket C,D weights
-                3. WeightStrategyC = market cap weighted
+                2. WeightStrategyC = market cap weighted
                     1. Basket E weights
                     2. No external dependencies, can be called JIT to generate
-                    3. Methodology for calculating market cap can be deployed on-chain (store 4626’s totalAssets [= totalSupply * convertToAssets] * assetValue)
+                    3. Methodology for calculating market cap can be deployed on-chain (store 4626's totalAssets [= totalSupply * convertToAssets] * assetValue)
 </Accordion>
 
 2. **Rebalance Proposer (DAO)** calls `BasketManager.proposeRebalance()`.
-    - Calculate the new total target token amounts based on each basket’s target weight.
+    - Calculate the new total target token amounts based on each basket's target weight.
 
 <Accordion title="Details (Click to expand)">
     - Permissions
         - Could be permissionless with threshold limits.
     - Checks
-        - Reads each basket’s current weight and target weight and then calculates the new protocol level state and measures the difference between the current/target states.
+        - Reads each basket's current weight and target weight and then calculates the new protocol level state and measures the difference between the current/target states.
         - If the delta is less than some threshold, rebalance is not proposed.
             - $\sum_{i=1}^{n}\sum_{j=1}^{m} x_{ij} \ge L$
         - If the time since the last rebalance is less than some threshold, the rebalance is not proposed.
@@ -208,7 +208,7 @@ stateDiagram-v2
         - None
     - Output:
         - During `BasketManager.proposeRebalance()`
-            - Each basket’s target weight is fetched from the WeightStrategy contract and stored as a hash in the BasketManager contract.
+            - Each basket's target weight is fetched from the WeightStrategy contract and stored as a hash in the BasketManager contract.
 </Accordion>
 
 3. **TokenSwap Proposer (DAO)** calculates the optimal swap pairs to reach the target amounts of each basket and calls `BasketManager.proposeTokenSwap(Trade[] internalTrades, Trade[] externalTrades)` to submit all necessary swap amounts and the associated basket and target weight information. BasketManager performs minimal on-chain validation to ensure the inputs align with each basket's target weights. If more advanced validation is needed, the role can be assigned to a separate contract using [Axiom](https://www.axiom.xyz/), transforming the process from a variable to a fixed cost.
@@ -218,7 +218,7 @@ stateDiagram-v2
     - Permission
         - Limited since the internal and external trades need to be optimized before submission.
     - Checks
-        - Check if the each trade’s value change with slippage is within threshold (no apparent faulty swaps leading to value loss).
+        - Check if the each trade's value change with slippage is within threshold (no apparent faulty swaps leading to value loss).
         - Check if the end state of baskets weights and protocol weight is within threshold.
         - Check if affected baskets include the tokens they are swapping from/to.
         - If possible, validate the methodology on chain.
@@ -266,7 +266,7 @@ stateDiagram-v2
         - verifiedOrderHashes from BM contract storage and orders from emitted events.
     - Outputs:
         - Submits the orders to the CoW Swap API for execution.
-        - Note that CowSwap will revert any orderHashes that fail ERC-1271’s isValidSignature check.
+        - Note that CowSwap will revert any orderHashes that fail ERC-1271's isValidSignature check.
             - https://docs.cow.fi/tutorials/how-to-place-erc-1271-smart-contract-orders/good-after-time-gat-orders
 </Accordion>
 
@@ -511,7 +511,7 @@ This process allows baskets to evolve over time by adding new assets while ensur
 
 ## LP tokens
 
-Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard for LP tokens. Since this is an ERC20, Uniswap’s [Permit2](https://github.com/Uniswap/permit2) will be compatible with the contract.
+Cove will use the [ERC-7540](https://eips.ethereum.org/EIPS/eip-7540) standard for LP tokens. Since this is an ERC20, Uniswap's [Permit2](https://github.com/Uniswap/permit2) will be compatible with the contract.
 
 ### Pricing LP tokens
 
@@ -524,7 +524,7 @@ This dynamic nature of a Basket's composition makes it difficult to determine a 
 
 #### Solutions
 
-- Use oracle prices of base asset combined with 4626’s price per share:
+- Use oracle prices of base asset combined with 4626's price per share:
 
     $$
     {BP}_{i}= \frac{\sum_{j=1}^{n} (q_{j} \cdot O_{j} \cdot P_{j})}{S_{i}}
@@ -559,7 +559,7 @@ Let:
 - $ET = \{ (b_i, a_j, a_k) \mid b_i \in B, a_j, a_k \in A, a_j \neq a_k \}$ be the set of all possible external trades
 - $x_{ij}$ be the current holdings of asset $a_j$ in basket $b_i$
 - $x_{ij}^*$  be the ideal target holdings of asset $a_j$ in basket $b_i$
-- $T_{ijkl}$ be the internal trade variable representing the amount of asset $a_j$ to trade from basket $b_i$ for asset $a_k$ from basket  $b_l$
+- $T_{ijkl}$ be the internal trade variable representing the amount of asset $a_j$ to trade from basket $b_i$ for asset $a_k$ from basket $b_l$
 - $E_{ijk}$ be the external trade variable representing the amount of asset $a_j$ to trade from basket $b_i$ to an external party for asset $a_k$
 
 ### Determining Current Holdings
@@ -568,7 +568,7 @@ This would be the balances of each asset including USDT that each basket is curr
 
 ### Determining Target Holdings
 
-In order to determine the target holdings of assets, we need to account for users’ deposit requests and redeem requests. First we calculate how much ideal amount of USDT will be withdrawn from the basket. (Note that this is only an estimation and would not account for fees/slippage. The real amounts we end up with will vary based on slippage of each trade pairs). Since we know the total supply of the basket token and the amount of basket tokens submitted by the users for redeeming, the below formulae would be used for the target holding amounts.
+In order to determine the target holdings of assets, we need to account for users' deposit requests and redeem requests. First we calculate how much ideal amount of USDT will be withdrawn from the basket. (Note that this is only an estimation and would not account for fees/slippage. The real amounts we end up with will vary based on slippage of each trade pairs). Since we know the total supply of the basket token and the amount of basket tokens submitted by the users for redeeming, the below formulae would be used for the target holding amounts.
 
 - Let $V_i = \sum_{j=1}^{n}x_{ij} \cdot O_j \cdot P_j$
     - USD value of basket i before rebalancing, including the pending USDT deposit.
@@ -577,7 +577,7 @@ For the USDT target amount:
 
 $x_{iU}^* = \left( \frac{BT_{i}^{redeeming}}{\text{S}_i} \right) \times  \dfrac{V_i - x_{iU}\cdot O_U}{O_U}$
 
-For other assets’ target amounts:
+For other assets' target amounts:
 
 ${x}_{ij}^* = \left( V_i - x_{iU}^* \cdot O_{U} \right) \times \frac{\text{target weight}_j}{1} / (O_j \cdot P_j)$
 
@@ -630,6 +630,28 @@ where $\alpha$ is a large penalty constant for external trades (e.g., $\alpha = 
     $T_{ijkl} \geq 0, \quad E_{ijk} \geq 0$
 
     This ensures that all trade variables are non-negative, which is a standard requirement in trade optimization problems to prevent nonsensical negative trades.
+
+### Verifiable Computation with Trusted Execution Environments (TEEs)
+
+The off-chain determination of optimal internal and external trades via linear programming introduces an element of trust. Participants in the Cove protocol rely on the TokenSwap Proposer to execute this complex computation faithfully and submit a genuinely optimized set of trades. While DAO governance provides a layer of oversight, the computational process itself remains opaque to external verifiers.
+
+Trusted Execution Environments (TEEs) offer a compelling solution to enhance the verifiability and integrity of this critical step. A TEE, such as Intel SGX or AMD SEV, provides a hardware-isolated environment within a processor where code and data can be protected against observation or tampering by the host system, including the operating system or hypervisor.
+
+**Benefits for Cove's Rebalancing Optimization:**
+
+1.  **Remote Attestation & Integrity**: The linear programming solver can be executed within a TEE. Crucially, TEEs support *remote attestation*, a process where the TEE cryptographically proves to a remote party (e.g., the BasketManager contract or users) that a specific, audited piece of software (the solver) was loaded and executed correctly within the secure enclave, and that the output (the proposed trades) is the genuine result of this computation. This provides strong integrity guarantees for the optimization process, ensuring the proposed trades haven't been manipulated. [ZTEE]
+
+2.  **Reduced Trust Assumptions**: By leveraging TEEs, the protocol can significantly reduce the trust placed in the TokenSwap Proposer's operational security. Instead, trust shifts to the well-defined security properties of the TEE hardware and the attestation mechanism. This aligns with the broader DeFi ethos of minimizing reliance on trusted intermediaries.
+
+3.  **Confidentiality (Potential Future Enhancement)**: While the primary benefit here is verifiable execution, TEEs also offer confidentiality. If parts of the input data for the linear programming (e.g., very specific trading intentions beyond basket weights) were deemed highly sensitive in future iterations, TEEs could protect this data even from the host running the computation.
+
+4.  **Enhanced Transparency**: While the computation inside the TEE is a "black box" to the host, the remote attestation process makes the *choice of code* and the *integrity of its execution* transparent and verifiable. This is a step towards what the Flashbots article terms "Zero Trust Execution Environments," aiming to minimize trust dependencies. [ZTEE]
+
+**Considerations:**
+
+Implementing TEE-based verifiable computation involves its own set of challenges, including the complexity of TEE application development, potential performance overheads (though likely acceptable for this off-chain process), and the inherent trust in the TEE hardware manufacturer and the key provisioning process. However, the substantial increase in verifiability and the reduction of trust in off-chain computation make TEEs a promising avenue for bolstering the security and trustworthiness of Cove's rebalancing mechanism.
+
+[ZTEE] Flashbots. (2024-10-11). *Zero Trust Execution Environments*. [https://writings.flashbots.net/ZTEE](https://writings.flashbots.net/ZTEE)
 
 ## Calculating deposits and redeems
 
@@ -705,13 +727,13 @@ Cove uses oracles to value baskets and settle internal trades.  Cove supports pl
 
 - Primary: Near real-time price oracle
     - Pyth (preferable for settling internal trades since real-time prices can be pulled for accuracy, cost permitting)
-        - Pyth does not automatically submit the prices to the EVM networks: protocols and users are responsible for updating the on-chain Pyth price before using it. You may find a thorough explainer on the On-Demand Model in our [docs](https://docs.pyth.network/documentation/pythnet-price-feeds/on-demand).
+        - Pyth does not automatically submit the prices to the EVM networks: protocols and users are responsible for updating the on-chain Pyth price before using it. You may find a thorough explainer on the On-Demand Model in our [docs](https://docs.pyth.network/documentation/pythnet-price-feeds/on-demand).
 - Secondary (anchor): Update threshold based oracle
     - Chainlink
 - Other potential options include:
     - DEX TWAP or EMA oracles
         - Uniswap V3 TWAP
-    - [Gyroscope’s Consolidated Price Feed (CPF)](https://twitter.com/Mrfti_plus/status/1717475859374682560)
+    - [Gyroscope's Consolidated Price Feed (CPF)](https://twitter.com/Mrfti_plus/status/1717475859374682560)
         - Includes a [series of circuit breakers](https://docs.gyro.finance/gyroscope-protocol/oracles/consolidated-price-feed#circuit-breakers) to protect against faulty oracles.
     - [Chronicle protocol](https://chroniclelabs.org/dashboard)
         - Similar update cadence and limits as Chainlink
@@ -764,20 +786,20 @@ By leveraging these monitoring and emergency response features, Cove can quickly
         - The problem with auction mechanisms for frequent rebalancing is as follows (from [Aera V1 Weight Update](https://docs.aera.finance/v1-archive/concepts/vault-guardian/weight-update)):
             - Auctions are overly sensitive to current market price,
             - Auctions restrict participation to larger pools of capital and infrastructure to identify and participate in the auction.
-        - The main advantage from using an auction mechanism like Kuiper is removing the oracle dependency.  However, that dependency is already implicit since oracles are used to value basket tokens.  In theory, CoW Swap should offer better execution due to ring trades, and by outsourcing this functionality we can reduce the complexity of the protocol and tap into CoW Swap’s existing network of solvers.  Cove will also support using dutch auctions to rebalance via an adapter as a fallback.
+        - The main advantage from using an auction mechanism like Kuiper is removing the oracle dependency.  However, that dependency is already implicit since oracles are used to value basket tokens.  In theory, CoW Swap should offer better execution due to ring trades, and by outsourcing this functionality we can reduce the complexity of the protocol and tap into CoW Swap's existing network of solvers.  Cove will also support using dutch auctions to rebalance via an adapter as a fallback.
         - Existing work
             - Kuiper (oracle-less) - https://kuiper.gitbook.io/kuiper-docs/protocol/rebalancing-auctions
             - Set (uses MakerDAO price feeds) - https://help.tokensets.com/en/articles/3399436-how-to-participate-in-set-protocol-rebalance-auctions
-    - [Balancer’s Managed Pools](https://docs.balancer.fi/concepts/pools/managed.html) ([Aera V1](https://docs.aera.finance/v1-archive/concepts/aera-vault/balancer-managed-pool))
-        - While it retains some benefits of TWAP’ing, still suffers from loss-versus-rebalancing.
+    - [Balancer's Managed Pools](https://docs.balancer.fi/concepts/pools/managed.html) ([Aera V1](https://docs.aera.finance/v1-archive/concepts/aera-vault/balancer-managed-pool))
+        - While it retains some benefits of TWAP'ing, still suffers from loss-versus-rebalancing.
 - Omitting contract events and using shadow events for gas optimization ([Shadow](https://www.shadow.xyz/))
     - Seems like a premature optimization given how much tooling relies on events.
 
 ## Related work
 
 - [Kuiper](https://kuiper.gitbook.io/kuiper-docs/)
-- [Tokemak’s Autopilot v2](https://medium.com/tokemak/tokemak-v2-introducing-lmps-autopilot-and-the-dao-liquidity-marketplace-86b8ec0656a)
-- [Gauntlet’s Aera v2](https://docs.aera.finance/how-aera-v2-works)
+- [Tokemak's Autopilot v2](https://medium.com/tokemak/tokemak-v2-introducing-lmps-autopilot-and-the-dao-liquidity-marketplace-86b8ec0656a)
+- [Gauntlet's Aera v2](https://docs.aera.finance/how-aera-v2-works)
 - [Definitive](https://docs.definitive.fi/)
 - [Set](https://www.tokensets.com/)
 - [Sandclock](https://www.sandclock.org/)
