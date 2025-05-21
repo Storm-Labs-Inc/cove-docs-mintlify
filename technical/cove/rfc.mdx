@@ -723,24 +723,30 @@ The management fee for each basket can be set individually by the protocol admin
 
 ## Oracles
 
-Cove uses oracles to value baskets and settle internal trades.  Cove supports pluggable oracle implementations using the [euler-price-oracle](https://github.com/euler-xyz/euler-price-oracle) library (which adheres to [EIP-7726](https://eips.ethereum.org/EIPS/eip-7726)).
+Cove employs oracles to value baskets and settle internal trades. The protocol is designed to support pluggable oracle implementations using [euler-price-oracle](https://github.com/euler-xyz/euler-price-oracle).
 
-- Primary: Near real-time price oracle
-    - Pyth (preferable for settling internal trades since real-time prices can be pulled for accuracy, cost permitting)
-        - Pyth does not automatically submit the prices to the EVM networks: protocols and users are responsible for updating the on-chain Pyth price before using it. You may find a thorough explainer on the On-Demand Model in our [docs](https://docs.pyth.network/documentation/pythnet-price-feeds/on-demand).
-- Secondary (anchor): Update threshold based oracle
-    - Chainlink
-- Other potential options include:
-    - DEX TWAP or EMA oracles
-        - Uniswap V3 TWAP
-    - [Gyroscope's Consolidated Price Feed (CPF)](https://twitter.com/Mrfti_plus/status/1717475859374682560)
-        - Includes a [series of circuit breakers](https://docs.gyro.finance/gyroscope-protocol/oracles/consolidated-price-feed#circuit-breakers) to protect against faulty oracles.
-    - [Chronicle protocol](https://chroniclelabs.org/dashboard)
-        - Similar update cadence and limits as Chainlink
+### Oracle Adapter Types
 
-Oracles will primarily use [AnchoredOracle](https://github.com/Storm-Labs-Inc/cove-contracts-core/blob/master/src/AnchoredOracle.sol), a smart contract that implements a `PriceOracle` by retrieving quotes from a primary oracle and validating them against an anchor oracle. It ensures the primary quote is within a specified divergence range from the anchor quote before returning the price. This provides an additional layer of security against stale or manipulated oracle prices.
+Cove defines the following oracle adapter types:
+-   **ERC-4626 Oracle**: Converts between an ERC-4626 vault's shares and its underlying asset using `convertToAssets` and `convertToShares`. This adapter is intended for use when no direct oracle exists for the vault token.
+-   **Chained ERC-4626 Oracle**: Extends the ERC-4626 Oracle functionality to a chain of vaults (maximum depth of 10) until a target asset is reached, performing sequential conversions along the chain.
+-   **Curve EMA Oracle (Underlying)**: Reads the Exponential Moving Average (EMA)-based pricing exposed by Curve Stable-Swap-NG pools. Configuration flags determine whether the pool's price is expressed in vault shares or underlying assets.
 
-Assets that cannot be priced directly in USD will use a [CrossAdapter](https://github.com/euler-xyz/euler-price-oracle/blob/master/src/adapter/CrossAdapter.sol) with the base asset.
+### Anchored Oracle Behaviour
+
+The `AnchoredOracle` implementation includes the following behaviors:
+-   Automatic rescaling of the input amount if the primary quote is less than 1 WAD (i.e., `1e18`) to preserve precision.
+-   Explicit `ScalingOverflow` revert on extreme input values.
+-   The `maxDivergence` parameter is bounded between 0.1% and 50%; the constructor will revert if values outside this range are provided.
+
+### Interface and Registration
+
+-   Cove oracle adapters **must** conform to the **EIP-7726** (`IPriceOracle`) interface.
+-   Oracle registration is managed via an `OracleRouter` contract, which is referenced by the `BasketManager`. Deployment scripts are responsible for the on-chain registration of each adapter. If an `AnchoredOracle` instance is used, its corresponding (primary, anchor) oracle pair must also be registered.
+
+The primary oracle implementation utilized is `AnchoredOracle`. This smart contract implements the `IPriceOracle` interface by retrieving quotes from a primary oracle and validating them against an anchor oracle. The primary quote must be within a specified divergence range from the anchor quote before the price is returned. This mechanism provides an additional layer of security against stale or manipulated oracle prices.
+
+For assets that cannot be priced directly in USD, a `CrossAdapter` is utilized with the base asset.
 
 ## Risks
 
