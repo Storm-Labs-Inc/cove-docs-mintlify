@@ -78,13 +78,11 @@
     {
       "group": "Cove Ecosystem",
       "pages": [
-        "ecosystem/cove-protocol",
         {
-          "group": "Boosties",
+          "group": "Cove Protocol",
           "pages": [
-            "ecosystem/boosties/boosties",
-            "ecosystem/boosties/coveyfi",
-            "ecosystem/boosties/dyfi-redeemer"
+            "ecosystem/protocol/cove-protocol",
+            "ecosystem/protocol/coveusd"
           ]
         },
         {
@@ -94,6 +92,14 @@
             "ecosystem/token/liquidity-mining",
             "ecosystem/token/governance",
             "ecosystem/token/launchpad"
+          ]
+        },
+        {
+          "group": "Boosties",
+          "pages": [
+            "ecosystem/boosties/boosties",
+            "ecosystem/boosties/coveyfi",
+            "ecosystem/boosties/dyfi-redeemer"
           ]
         },
         {
