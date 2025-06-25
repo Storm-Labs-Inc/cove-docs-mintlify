@@ -1,6 +1,7 @@
 ---
 title: "coveUSD"
 description: "Cove's flagship vault delivering institutional-grade USD yield"
+tag: "NEW"
 ---
 
 ## Overview
@@ -9,10 +10,20 @@ coveUSD is Cove's flagship vault that delivers institutional-grade USD yield thr
 
 ### Key Features
 
-- **Automated Optimization**: Routes deposits through off-chain Silverback bots and Gauntlet's institutional-grade risk models
-- **Dynamic Reallocation**: Automatically reallocates capital across top-tier strategies to maximize risk-adjusted returns
-- **Proven Performance**: Achieved net APYs up to 8.08% over the past three months
-- **Transparent Governance**: Future active management secured behind a timelock for transparent governance
+<CardGroup cols={2}>
+  <Card title="Automated Optimization" icon="chart-network">
+    Routes deposits through off-chain Silverback bots and Gauntlet's institutional-grade risk models.
+  </Card>
+  <Card title="Dynamic Reallocation" icon="arrows-rotate">
+    Automatically reallocates capital across top-tier strategies to maximize risk-adjusted returns.
+  </Card>
+  <Card title="Proven Performance" icon="arrow-up-right-dots">
+    Achieved net APYs up to 8.08% over the past three months.
+  </Card>
+  <Card title="Transparent Governance" icon="lock">
+    Future active management secured behind a timelock for transparent governance.
+  </Card>
+</CardGroup>
 
 ## How It Works
 
@@ -20,39 +31,91 @@ coveUSD is Cove's flagship vault that delivers institutional-grade USD yield thr
 
 coveUSD dynamically allocates capital across a curated selection of blue-chip USD yield strategies:
 
-- **Ethena's sUSDe**: Synthetic dollar protocol offering sustainable yield
-- **Frax's sfrxUSD**: Frax's staked USD stablecoin
-- **Superform's SuperUSDC**: Multi-protocol yield optimization (Euler/Fluid)
-- **Cove's Boosties sUSDS**: Maker/Spark yield vault
+<CardGroup cols={2}>
+    <Card title="Ethena sUSDe">
+        Synthetic dollar protocol offering sustainable yield.
+    </Card>
+    <Card title="Frax sfrxUSD">
+        Frax's staked USD stablecoin.
+    </Card>
+    <Card title="Superform SuperUSDC">
+        Multi-protocol yield optimization (Euler/Fluid).
+    </Card>
+    <Card title="Cove Boosties sUSDS">
+        Maker/Spark yield vault.
+    </Card>
+</CardGroup>
+
 
 ### Intelligent Rebalancing
 
-The vault employs sophisticated off-chain intelligence to optimize allocations:
+The vault employs sophisticated off-chain intelligence to optimize allocations.
 
-1. **Risk Analysis**: Gauntlet's models continuously assess risk/reward profiles across strategies
-2. **Opportunity Detection**: Silverback bots monitor yield opportunities 24/7
-3. **Efficient Execution**: Rebalancing occurs through Programmatic Orders to minimize costs
+<Steps>
+    <Step title="Risk Analysis">
+        Gauntlet's models continuously assess risk/reward profiles across strategies.
+    </Step>
+    <Step title="Opportunity Detection">
+        Silverback bots monitor yield opportunities 24/7.
+    </Step>
+    <Step title="Efficient Execution">
+        Rebalancing occurs through Programmatic Orders to minimize costs.
+    </Step>
+</Steps>
 
 ## Deposits and Withdrawals
 
-coveUSD offers flexible options for entering and exiting positions:
+coveUSD offers flexible options for entering and exiting positions.
 
 ### Deposits
-- Deposit USDC into the protocol
-- Deposits are processed asynchronously during rebalancing cycles
-- Claim your coveUSD tokens after the next rebalancing event
+
+<Steps>
+    <Step title="Deposit USDC">
+        You can deposit USDC into the protocol at any time.
+    </Step>
+    <Step title="Asynchronous Processing">
+        Your deposit is processed during the next rebalancing cycle.
+    </Step>
+    <Step title="Claim coveUSD">
+        Your coveUSD tokens become available to claim after the rebalancing event completes.
+        <Info>
+          **Automated Claiming:** This step is handled automatically for you by our non-custodial off-chain bots. You can also claim your tokens manually if you prefer.
+        </Info>
+    </Step>
+</Steps>
 
 ### Withdrawals
 
-**Option 1: Synchronous Pro-Rata Redemption**
-- Redeem coveUSD for a proportional share of underlying assets
-- Available at any time (except during rebalancing windows)
-- Receive a basket of the vault's current holdings
+You have two options for withdrawing your funds from the vault.
 
-**Option 2: Asynchronous USDC Withdrawal**
-- Request to withdraw USDC directly
-- Processed during the subsequent rebalancing event
-- USDC becomes claimable after ~24 hours
+<Tabs>
+<Tab title="Pro-Rata Withdrawal">
+    <Steps>
+        <Step title="Redeem coveUSD">
+            Redeem your `coveUSD` for a proportional share of the vault's underlying assets. This option is available at any time, except during rebalancing windows.
+        </Step>
+        <Step title="Receive Asset Basket">
+            You will instantly receive a basket of the vault's current holdings (e.g., sUSDe, sfrxUSD, etc.).
+        </Step>
+    </Steps>
+</Tab>
+<Tab title="Single-Asset Withdrawal">
+    <Steps>
+        <Step title="Request USDC Withdrawal">
+            You can request to withdraw your entire position in USDC.
+        </Step>
+        <Step title="Asynchronous Processing">
+            The request is processed during the subsequent rebalancing event, which typically occurs within 24 hours.
+        </Step>
+        <Step title="Claim USDC">
+            Your USDC becomes claimable after the rebalancing is complete.
+            <Info>
+              **Automated Claiming:** This step is handled automatically for you by our non-custodial off-chain bots. You can also claim your tokens manually if you prefer.
+            </Info>
+        </Step>
+    </Steps>
+</Tab>
+</Tabs>
 
 ## Performance
 

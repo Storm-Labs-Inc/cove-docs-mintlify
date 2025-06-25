@@ -86,7 +86,7 @@
           ]
         },
         {
-          "group": "$COVE",
+          "group": "The $COVE Token",
           "pages": [
             "ecosystem/token/info",
             "ecosystem/token/liquidity-mining",
@@ -150,7 +150,7 @@
       "group": "Technical Documentation",
       "pages": [
         {
-          "group": "Cove",
+          "group": "Cove Protocol",
           "pages": [
             "technical/cove/rfc",
             "technical/cove/access-controls",

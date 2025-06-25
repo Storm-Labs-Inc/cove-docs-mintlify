@@ -19,12 +19,12 @@ description: "The one-stop platform for earning onchain"
 ### What is the Cove Protocol?
 
 Cove pairs off-chain intelligence with on-chain automation to deliver curated
-1-click DeFi vaults that earn higher, risk-adjusted yield 24/7.
+1-click DeFi vaults that earn higher, safer yield.
 
 - A simplified way to earn onchain that hides the complexity of best-in-class management.
 - Easy access to sophisticated strategies run by experts like [Gauntlet](https://www.gauntlet.xyz/).
 - Earns $1B+ in additional profit for LPs by eliminating [loss-versus-rebalancing (LVR)](https://a16zcrypto.com/posts/article/lvr-quantifying-the-cost-of-providing-liquidity-to-automated-market-makers/) using [Programmatic Orders](https://docs.cow.fi/cow-protocol/concepts/order-types/programmatic-orders).
-- Better execution when internal trades are matched offchain by Cove’s solver and settled without leaking value, like ring trades in [batch auctions](https://docs.cow.fi/cow-protocol/concepts/how-it-works/coincidence-of-wants).
+- Better execution when internal trades are matched offchain by Cove's solver and settled without leaking value, like ring trades in [batch auctions](https://docs.cow.fi/cow-protocol/concepts/how-it-works/coincidence-of-wants).
 
 ### How does it work?
 
@@ -32,7 +32,7 @@ Cove aggregates deposits and rebalances periodically using [Programmatic
 Orders](https://docs.cow.fi/cow-protocol/concepts/order-types/programmatic-orders).
 When rebalancing, strategies may have a [coincidence of
 wants](https://en.wikipedia.org/wiki/Coincidence_of_wants) (CoW) like ring
-trades in [CoW Swap’s batch
+trades in [CoW Swap's batch
 auctions](https://docs.cow.fi/overview/coincidence-of-wants).
 
 Cove maximizes the volume of CoWs using linear programming. This is done by
@@ -43,20 +43,58 @@ supports programmatic orders including TWAP via their [Programmatic Order
 Framework](https://blog.cow.fi/introducing-the-programmatic-order-framework-from-cow-protocol-088a14cb0375))
 to ensure the best execution and capture positive slippage.
 
-Cove uses the ERC-4626 tokenized vault standard and [ERC-7540 Asynchronous ERC-4626 Tokenized Vaults](https://eips.ethereum.org/EIPS/eip-7540) to combine diverse yield sources.
+Cove uses the ERC-4626 tokenized vault standard and [ERC-7540 Asynchronous ERC-4626 Tokenized Vaults](https://eips.ethereum.org/EIPS/eip-7540) to combine diverse yield sources. The `coveUSD` vault, for instance, takes `USDC` deposits and allocates them across a diversified portfolio of high-quality, yield-bearing stablecoins to generate returns.
 
-#### Deposits and Withdrawals
+### Deposits & Withdrawals
 
-Cove offers flexible options for deposits and withdrawals for coveUSD:
+Cove provides flexible, asynchronous options for moving funds in and out of the `coveUSD` vault. This model is a core feature designed to protect LPs from value leakage by batching transactions.
 
-*   **Deposits:** Users deposit USDC into the protocol. These deposits are processed asynchronously. After the next rebalancing cycle, users can claim their corresponding coveUSD (the tokenized vault share).
-*   **Withdrawals:**
-    *   **Synchronous Pro-Rata Redemption:** Users can redeem their coveUSD for a proportional share of the vault's underlying assets at any time, except during the rebalancing window.
-    *   **Asynchronous USDC Withdrawal:** Users can request to withdraw USDC. These requests are processed during the subsequent rebalancing event, after which the USDC becomes claimable. This process typically takes around 24 hours, though this window is subject to tuning in collaboration with Gauntlet.
+<Tabs>
+  <Tab title="Deposit USDC">
+    Depositing into `coveUSD` is a two-step asynchronous process designed to align with the protocol's rebalancing cycle.
 
-#### Rebalancing Window
+    <Steps>
+      <Step title="Request Deposit">
+        You deposit `USDC` into the protocol. Your funds are securely held and queued for inclusion in the next rebalancing event.
+      </Step>
+      <Step title="Claim coveUSD">
+        After the rebalance is complete (typically within 24 hours), you can claim your `coveUSD` tokens, which represent your share in the vault.
+        <Info>
+          **Automated Claiming:** This step can be handled automatically for you by our non-custodial off-chain infrastructure. You can also manually claim your tokens at any time.
+        </Info>
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Withdraw Funds">
+    You have two options for withdrawals, allowing you to choose between receiving `USDC` or a mix of the vault's underlying assets.
 
-The Cove Protocol pauses operations for a rebalancing window that typically lasts 15 minutes. During this period, deposits, claims, and withdrawals are temporarily unavailable. The rebalancing process may retry up to two times if needed, potentially extending this window up to 45 minutes.
+    #### Asynchronous USDC Withdrawal
+    This is the standard withdrawal method that returns `USDC` to you.
+
+    <Steps>
+      <Step title="Request Withdrawal">
+        You submit a request to redeem your `coveUSD` for `USDC`. Your request is queued for the next rebalancing event.
+      </Step>
+      <Step title="Claim USDC">
+        After the rebalance, the protocol processes your request, and your `USDC` becomes claimable. This process typically takes around 24 hours.
+        <Info>
+          **Automated Claiming:** This step can be handled automatically for you by our non-custodial off-chain infrastructure. You can also manually claim your tokens at any time.
+        </Info>
+      </Step>
+    </Steps>
+
+    #### Synchronous Pro-Rata Redemption
+    For immediate access to your funds, you can redeem your `coveUSD` for a proportional share of all the assets currently held within the vault.
+
+    <Note>
+      For example, if the vault holds assets like `sUSDe` (Ethena) and `sfrxUSD` (Frax), a pro-rata redemption would instantly give you a mix of these assets. This option is available at any time except during a rebalance.
+    </Note>
+  </Tab>
+</Tabs>
+
+<Warning title="Rebalancing Window">
+  The Cove Protocol pauses operations for a daily rebalancing window that typically lasts 15 minutes. During this period, deposits, claims, and withdrawals are temporarily unavailable. The rebalancing process may retry up to two times if needed, potentially extending this window up to 45 minutes.
+</Warning>
 
 ### What makes Cove unique?
 
@@ -81,6 +119,7 @@ protects from MEV and captures positive slippage.
 3. Earn the most yield - Cove protects you from loss-versus-rebalancing and
    common DeFi pitfalls like slippage, MEV, price impact, and external trading
    fees.
-4. Fully collateralized - redeemable pro-rata synchronously, or in the base
-   asset asynchronously.
-5. Less risk - No exposure to cross-chain or duration risk (outside of the rebalancing period).
+4. Fully collateralized - redeemable for a pro-rata share of underlying assets
+   synchronously, or in the base asset asynchronously.
+5. Less risk - No exposure to cross-chain or duration risk (outside of the
+   rebalancing period).
