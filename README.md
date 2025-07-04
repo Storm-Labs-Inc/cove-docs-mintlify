@@ -1,22 +1,56 @@
-# cove-docs-mintlify
+# Cove Documentation
 
-### Development
+This repository contains the official documentation for the Cove protocol and
+ecosystem, built with [Mintlify](https://mintlify.com). It includes user
+guides, technical references, protocol RFCs, and partner resources rendered as
+`.mdx` pages.
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
+## Repository structure
 
+- `introduction.mdx` – Landing page for the docs
+- `ecosystem/` – High-level overviews of Cove protocol, tokens, partners, and Boosties
+- `technical/` – Deep-dive technical specs and architecture RFCs
+- `how-to/` – Step-by-step user guides
+- `security/` – Audits, bug-bounty, risk disclosures, and contract addresses
+- `resources/` – Additional resources like media kit and privacy policy
+- `images/` – All static assets referenced by the docs
+
+## Getting started
+
+### Prerequisites
+
+- Node.js ≥ 18
+- [pnpm](https://pnpm.io) ≥ 8
+- Mintlify CLI (installed globally)
+
+### Installation
+
+```bash
+pnpm install
+pnpm i -g mintlify   # installs the Mintlify CLI
 ```
-pnpm i -g mintlify
-```
 
-Run the following command at the root of your documentation (where mint.json is)
+### Local development
 
-```
+```bash
 mintlify dev
 ```
 
-To lint the files:
+This launches a hot-reloading docs server at `http://localhost:3000`.
 
+### Linting & formatting
+
+```bash
+pnpm format:check   # verify formatting
+pnpm format         # apply Prettier formatting
 ```
-pnpm format:check
-pnpm format
-```
+
+## Contributing
+
+Pull requests are welcome! Please ensure that new MDX files follow the writing
+guidelines in `always_applied_workspace_rules` and that all code examples are
+tested.
+
+## License
+
+Licensed under the [MIT License](LICENSE) © 2025 Storm Labs.

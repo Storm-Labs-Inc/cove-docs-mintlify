@@ -1,0 +1,2 @@
+# Ignore RFC documentation files when running prettier
+**/rfc.mdx

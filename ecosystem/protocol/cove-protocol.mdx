@@ -64,6 +64,7 @@ Cove provides flexible, asynchronous options for moving funds in and out of the 
         </Info>
       </Step>
     </Steps>
+
   </Tab>
   <Tab title="Withdraw Funds">
     You have two options for withdrawals, allowing you to choose between receiving `USDC` or a mix of the vault's underlying assets.
@@ -89,11 +90,15 @@ Cove provides flexible, asynchronous options for moving funds in and out of the 
     <Note>
       For example, if the vault holds assets like `sUSDe` (Ethena) and `sfrxUSD` (Frax), a pro-rata redemption would instantly give you a mix of these assets. This option is available at any time except during a rebalance.
     </Note>
+
   </Tab>
 </Tabs>
 
 <Warning title="Rebalancing Window">
-  The Cove Protocol pauses operations for a daily rebalancing window that typically lasts 15 minutes. During this period, deposits, claims, and withdrawals are temporarily unavailable. The rebalancing process may retry up to two times if needed, potentially extending this window up to 45 minutes.
+  The Cove Protocol pauses operations for a daily rebalancing window that
+  typically lasts 15 minutes. During this period, deposits, claims, and
+  withdrawals are temporarily unavailable. The rebalancing process may retry up
+  to two times if needed, potentially extending this window up to 45 minutes.
 </Warning>
 
 ### What makes Cove unique?
